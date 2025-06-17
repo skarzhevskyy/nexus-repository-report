@@ -1,1 +1,1 @@
-rootProject.name = "template-java-gradle-spring"
+rootProject.name = "nexus-repository-report"

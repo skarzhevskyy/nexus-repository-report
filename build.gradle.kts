@@ -1,11 +1,15 @@
 plugins {
-	java
-	id("org.springframework.boot") version "3.5.0"
+	id("java")
+	id("application")
+	// Create Java API from OpenAPI specification
+	id("org.openapi.generator") version "7.13.0"
 	// Dependencies list and diff automation in command line and CI/CD
 	id("org.cyclonedx.bom") version "2.3.1"
+	// Allow configuring IntelliJ IDEA project
+	id("idea")
 }
 
-group = "com.example.template-java-gradle-spring"
+group = "com.example.nexus-repository-report"
 version = "0.0.1-SNAPSHOT"
 
 java {
@@ -14,21 +18,28 @@ java {
 	}
 }
 
+application {
+	mainClass.set("com.pyx4j.nxrm.report.Application")
+}
+
 repositories {
 	mavenCentral()
 }
 
 dependencies {
-	implementation(platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
+	implementation(platform("org.springframework.boot:spring-boot-dependencies:3.5.0"))
 	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.springframework.boot:spring-boot-starter-webflux")
-	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("org.springframework.boot:spring-boot-starter-actuator")
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
+	implementation("io.swagger.core.v3:swagger-annotations:2.2.32")
+	implementation("jakarta.validation:jakarta.validation-api")
+	implementation("com.fasterxml.jackson.core:jackson-databind")
+	// We have openApiNullable=false, but still some models have this imports
+	implementation("org.openapitools:jackson-databind-nullable:0.2.6")
+	// Allow for Dual jakarta and javax annotations, generated code uses javax.validation
+	implementation("javax.validation:validation-api:2.0.1.Final")
+	implementation("javax.annotation:javax.annotation-api:1.2")
 
-	implementation("org.apache.tomcat.embed:tomcat-embed-core:10.1.41") {
-		exclude(group = "org.apache.tomcat", module = "tomcat-annotations-api")
-	}
+	// Command line arguments
+	implementation("info.picocli:picocli:4.7.7")
 
 	implementation("com.google.guava:guava:33.4.8-jre")
 	implementation("org.apache.commons:commons-lang3")
@@ -41,6 +52,50 @@ dependencies {
 		exclude(group = "com.jayway.jsonpath", module = "json-path")
 	}
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+val generatedSourcesPath = "$projectDir/generated/src/main/java"
+val apiDescriptionFile = "$projectDir/src/main/resources/open-api-nexus.json"
+
+// Validating a single specification
+openApiValidate {
+	inputSpec.set(apiDescriptionFile)
+}
+
+openApiGenerate {
+	generatorName.set("spring") // https://github.com/OpenAPITools/openapi-generator/blob/master/docs/generators/spring.md
+	inputSpec.set(apiDescriptionFile)
+	outputDir.set(generatedSourcesPath)
+	modelPackage.set("org.sonatype.nexus.model")
+	apiPackage.set("org.sonatype.nexus.api")
+	skipOperationExample.set(true) // there is an escape bug in spring OpenAPI Generator
+	configOptions.put("interfaceOnly", "true")
+	configOptions.put("useSpringBoot3", "true")
+	configOptions.put("useJakartaEe", "true")
+	configOptions.put("openApiNullable", "false")
+	configOptions.put("useBeanValidation", "false") // but generator still uses package javax.validation
+}
+
+// Add the generated sources to the project
+java.sourceSets["main"].java.srcDir(generatedSourcesPath)
+
+idea {
+	module {
+		generatedSourceDirs.add(file(generatedSourcesPath))
+	}
+}
+
+// Make sure the sources are validated and generated before compiled
+tasks {
+	val openApiValidate by getting
+
+	val openApiGenerate by getting {
+		dependsOn(openApiValidate)
+	}
+
+	val compileJava by getting {
+		dependsOn(openApiGenerate)
+	}
 }
 
 tasks.withType<JavaCompile> {
