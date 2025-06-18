@@ -43,9 +43,8 @@ public class NxReportCommandArgs implements Callable<Integer> {
 
     @CommandLine.Option(
             names = {"--sort"},
-            description = "Sort repositories by: name, components, size (default: components)",
-            defaultValue = "components")
-    public String sortBy;
+            description = "Sort repositories by: ${COMPLETION-CANDIDATES} (default: components)")
+    public SortBy sortBy = SortBy.COMPONENTS;
 
     public Integer call() throws Exception {
         int exitCode = 0;

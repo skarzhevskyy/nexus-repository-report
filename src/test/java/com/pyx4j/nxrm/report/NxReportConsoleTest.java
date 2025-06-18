@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.pyx4j.nxrm.report.model.ComponentsSummary;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.AfterEach;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -15,30 +13,16 @@ import java.io.PrintStream;
  */
 class NxReportConsoleTest {
 
-    private ByteArrayOutputStream outputStream;
-    private PrintStream originalOut;
-
-    @BeforeEach
-    void setUp() {
-        // Capture console output for testing
-        outputStream = new ByteArrayOutputStream();
-        originalOut = System.out;
-        System.setOut(new PrintStream(outputStream));
-    }
-
-    @AfterEach
-    void tearDown() {
-        // Restore original console output
-        System.setOut(originalOut);
-    }
-
     @Test
     void printSummary_withShortRepositoryNames_shouldFormatCorrectly() {
         ComponentsSummary summary = new ComponentsSummary();
         summary.addRepositoryStats("maven-central", "maven2", 100, 1024000);
         summary.addRepositoryStats("npm-proxy", "npm", 50, 512000);
 
-        NxReportConsole.printSummary(summary, SortBy.COMPONENTS);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+        
+        NxReportConsole.printSummary(summary, SortBy.COMPONENTS, printStream);
 
         String output = outputStream.toString();
         assertThat(output).contains("Repository Report Summary:");
@@ -58,7 +42,10 @@ class NxReportConsoleTest {
         summary.addRepositoryStats("very-long-repository-name-that-exceeds-thirty-characters", "maven2", 100, 1024000);
         summary.addRepositoryStats("short", "npm", 50, 512000);
 
-        NxReportConsole.printSummary(summary, SortBy.NAME);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+        
+        NxReportConsole.printSummary(summary, SortBy.NAME, printStream);
 
         String output = outputStream.toString();
         assertThat(output).contains("very-long-repository-name-that-exceeds-thirty-characters");
@@ -85,7 +72,10 @@ class NxReportConsoleTest {
         summary.addRepositoryStats("alpha-repo", "npm", 20, 2000);
         summary.addRepositoryStats("beta-repo", "docker", 30, 3000);
 
-        NxReportConsole.printSummary(summary, SortBy.NAME);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+        
+        NxReportConsole.printSummary(summary, SortBy.NAME, printStream);
 
         String output = outputStream.toString();
         int alphaIndex = output.indexOf("alpha-repo");
@@ -103,7 +93,10 @@ class NxReportConsoleTest {
         summary.addRepositoryStats("large-repo", "npm", 20, 10000);
         summary.addRepositoryStats("medium-repo", "docker", 30, 5000);
 
-        NxReportConsole.printSummary(summary, SortBy.SIZE);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+        
+        NxReportConsole.printSummary(summary, SortBy.SIZE, printStream);
 
         String output = outputStream.toString();
         int largeIndex = output.indexOf("large-repo");
@@ -122,7 +115,10 @@ class NxReportConsoleTest {
         summary.addRepositoryStats("many-components", "npm", 100, 2000);
         summary.addRepositoryStats("some-components", "docker", 50, 3000);
 
-        NxReportConsole.printSummary(summary, SortBy.COMPONENTS);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+        
+        NxReportConsole.printSummary(summary, SortBy.COMPONENTS, printStream);
 
         String output = outputStream.toString();
         int manyIndex = output.indexOf("many-components");
@@ -140,7 +136,10 @@ class NxReportConsoleTest {
         summary.addRepositoryStats("repo1", "maven2", 100, 1024000);
         summary.addRepositoryStats("repo2", "npm", 50, 512000);
 
-        NxReportConsole.printSummary(summary, SortBy.NAME);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+        
+        NxReportConsole.printSummary(summary, SortBy.NAME, printStream);
 
         String output = outputStream.toString();
         assertThat(output).contains("TOTAL");

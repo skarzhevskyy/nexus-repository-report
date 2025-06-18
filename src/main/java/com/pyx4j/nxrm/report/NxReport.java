@@ -78,9 +78,8 @@ public final class NxReport {
                 .flatMap(repository -> processRepositoryComponents(apiClient, repository, summary))
                 .collectList()
                 .doOnSuccess(allRepos -> {
-                    // Parse sort option and output the summary
-                    SortBy sortBy = SortBy.fromString(args.sortBy);
-                    NxReportConsole.printSummary(summary, sortBy);
+                    // Output the summary with the specified sort option
+                    NxReportConsole.printSummary(summary, args.sortBy);
                     resultCode.set(0);
                 })
                 .doOnError(ex -> {

@@ -3,6 +3,7 @@ package com.pyx4j.nxrm.report;
 import com.pyx4j.nxrm.report.model.ComponentsSummary;
 import com.pyx4j.nxrm.report.model.RepositoryStats;
 
+import java.io.PrintStream;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +18,19 @@ class NxReportConsole {
      * @param sortBy The sorting option to use
      */
     static void printSummary(ComponentsSummary summary, SortBy sortBy) {
-        System.out.println("\nRepository Report Summary:");
-        System.out.println("======================================================================");
+        printSummary(summary, sortBy, System.out);
+    }
+
+    /**
+     * Prints the component summary to the specified PrintStream.
+     *
+     * @param summary The summary to print
+     * @param sortBy The sorting option to use
+     * @param out The PrintStream to write to
+     */
+    static void printSummary(ComponentsSummary summary, SortBy sortBy, PrintStream out) {
+        out.println("\nRepository Report Summary:");
+        out.println("======================================================================");
         
         // Calculate the maximum repository name length for dynamic formatting
         int maxRepoNameLength = Math.max(30, // minimum width
@@ -33,8 +45,8 @@ class NxReportConsole {
         String dataFormat = "%-" + maxRepoNameLength + "s %-10s %12d %15s%n";
         
         // Print header
-        System.out.printf(headerFormat, "Repository", "Format", "Components", "Total Size");
-        System.out.printf(separatorFormat, 
+        out.printf(headerFormat, "Repository", "Format", "Components", "Total Size");
+        out.printf(separatorFormat, 
                 "-".repeat(maxRepoNameLength), 
                 "----------", 
                 "------------", 
@@ -45,7 +57,7 @@ class NxReportConsole {
                 .forEach(entry -> {
                     String repoName = entry.getKey();
                     RepositoryStats stats = entry.getValue();
-                    System.out.printf(dataFormat,
+                    out.printf(dataFormat,
                             repoName,
                             stats.getFormat(),
                             stats.getComponentCount(),
@@ -53,7 +65,7 @@ class NxReportConsole {
                 });
 
         // Print total
-        System.out.printf("%n" + dataFormat,
+        out.printf("%n" + dataFormat,
                 "TOTAL", "-", summary.getTotalComponents(), formatSize(summary.getTotalSizeBytes()));
     }
 
