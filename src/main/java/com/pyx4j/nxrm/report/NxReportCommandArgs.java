@@ -36,6 +36,11 @@ public class NxReportCommandArgs implements Callable<Integer> {
             defaultValue = "${NEXUS_TOKEN}")
     public String nexusToken;
 
+    @CommandLine.Option(
+            names = {"--proxy"},
+            description = "Proxy server URL (e.g., proxy.example.com:8081 or http://proxy.example.com:8081)")
+    public String proxyUrl;
+
     public Integer call() throws Exception {
         int exitCode = 0;
         switch (action) {

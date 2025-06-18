@@ -42,7 +42,10 @@ public final class NxReport {
             authorizationHeader = "Basic " + Base64.getEncoder().encodeToString((args.nexusUsername + ":" + args.nexusPassword).getBytes(StandardCharsets.UTF_8));
         }
 
-        WebClient webClient = WebClient.builder()
+        // Configure proxy settings
+        ProxySelector.ProxyConfig proxyConfig = ProxySelector.selectProxy(args.nexusServerUrl, args.proxyUrl);
+
+        WebClient webClient = ProxySelector.configureProxy(WebClient.builder(), proxyConfig)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, authorizationHeader)
