@@ -38,6 +38,24 @@ NEXUS_PASSWORD=yourpassword
 ./gradlew run
 ```
 
+### Proxy Support
+
+The tool supports proxy configuration through multiple methods:
+
+```bash
+# Command line proxy argument (highest priority)
+./gradlew run --args="--url https://nexus.example.com --proxy proxy.company.com:8080"
+./gradlew run --args="--url https://nexus.example.com --proxy http://user:pass@proxy.company.com:8080"
+
+# Environment variables
+export HTTP_PROXY=http://proxy.company.com:8080
+export HTTPS_PROXY=http://proxy.company.com:8080
+./gradlew run
+
+# Java system properties
+./gradlew run -Dhttp.proxyHost=proxy.company.com -Dhttp.proxyPort=8080
+```
+
 4. Sample output:
 ```
 Repository      Format    Components    Total Size
