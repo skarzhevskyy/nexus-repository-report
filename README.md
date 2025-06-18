@@ -38,6 +38,60 @@ NEXUS_PASSWORD=yourpassword
 ./gradlew run
 ```
 
+## 🐳 Docker Usage
+
+The application is also available as a Docker container from GitHub Container Registry.
+
+### Running with Docker
+
+```bash
+# Basic usage with environment variables
+docker run --rm \
+  -e NEXUS_URL=https://nexus.example.com \
+  -e NEXUS_USERNAME=admin \
+  -e NEXUS_PASSWORD=yourpassword \
+  ghcr.io/skarzhevskyy/nexus-repository-report:latest
+
+# Using command line arguments
+docker run --rm \
+  ghcr.io/skarzhevskyy/nexus-repository-report:latest \
+  --url https://nexus.example.com \
+  --username admin \
+  --password yourpassword
+
+# Using authentication token instead of username/password
+docker run --rm \
+  -e NEXUS_URL=https://nexus.example.com \
+  -e NEXUS_TOKEN=your-nexus-token \
+  ghcr.io/skarzhevskyy/nexus-repository-report:latest
+
+# With proxy configuration
+docker run --rm \
+  -e NEXUS_URL=https://nexus.example.com \
+  -e NEXUS_USERNAME=admin \
+  -e NEXUS_PASSWORD=yourpassword \
+  -e HTTP_PROXY=http://proxy.company.com:8080 \
+  -e HTTPS_PROXY=http://proxy.company.com:8080 \
+  ghcr.io/skarzhevskyy/nexus-repository-report:latest
+
+# Using command line proxy option
+docker run --rm \
+  ghcr.io/skarzhevskyy/nexus-repository-report:latest \
+  --url https://nexus.example.com \
+  --username admin \
+  --password yourpassword \
+  --proxy proxy.company.com:8080
+```
+
+### Available Environment Variables
+
+- `NEXUS_URL` - Nexus Repository Manager URL (required)
+- `NEXUS_USERNAME` - Username for authentication
+- `NEXUS_PASSWORD` - Password for authentication
+- `NEXUS_TOKEN` - Authentication token (alternative to username/password)
+- `HTTP_PROXY` - HTTP proxy URL
+- `HTTPS_PROXY` - HTTPS proxy URL
+
 ### Proxy Support
 
 The tool supports proxy configuration through multiple methods:

@@ -5,6 +5,8 @@ plugins {
 	id("org.openapi.generator") version "7.13.0"
 	// Dependencies list and diff automation in command line and CI/CD
 	id("org.cyclonedx.bom") version "2.3.1"
+	// Docker image creation
+	id("com.google.cloud.tools.jib") version "3.4.5"
 	// Allow configuring IntelliJ IDEA project
 	id("idea")
 }
@@ -124,4 +126,30 @@ tasks.register("sbom", org.cyclonedx.gradle.CycloneDxTask::class) {
 	setOutputFormat("json")
 	setIncludeBomSerialNumber(false)
 	setIncludeLicenseText(false)
+}
+
+// JIB configuration for Docker image creation
+jib {
+	from {
+		image = "eclipse-temurin:17-jre-alpine"
+	}
+	to {
+		image = "ghcr.io/skarzhevskyy/nexus-repository-report"
+		tags = setOf("latest", version.toString())
+	}
+	container {
+		mainClass = application.mainClass.get()
+		ports = listOf()  // CLI application, no exposed ports
+		environment = mapOf(
+			"JAVA_TOOL_OPTIONS" to "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+		)
+		labels = mapOf(
+			"org.opencontainers.image.title" to "Nexus Repository Report",
+			"org.opencontainers.image.description" to "CLI tool for generating reports from Nexus Repository Manager",
+			"org.opencontainers.image.version" to version.toString(),
+			"org.opencontainers.image.vendor" to "skarzhevskyy",
+			"org.opencontainers.image.licenses" to "Apache-2.0"
+		)
+		creationTime = "USE_CURRENT_TIMESTAMP"
+	}
 }

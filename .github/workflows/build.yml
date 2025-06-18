@@ -5,6 +5,10 @@ on:
     branches: [ main ]
     paths-ignore:
       - '**/README.md'
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '**/README.md'
   workflow_dispatch:
 
 jobs:
@@ -52,3 +56,23 @@ jobs:
           echo "Java version: $(java -version 2>&1 | head -1)"
           echo "Gradle version: $(./gradlew --version | grep 'Gradle' | head -1)"
           ./gradlew build
+
+      - name: Build Docker image
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "Building Docker image..."
+          ./gradlew jib
+
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Docker image to GitHub Packages
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "Publishing Docker image to GitHub Packages..."
+          ./gradlew jib
