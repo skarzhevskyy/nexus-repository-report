@@ -42,7 +42,8 @@ NEXUS_PASSWORD=yourpassword
 ```
 Repository      Format    Components    Total Size
 ------------    -------   -----------   ------------
-maven-releases  maven     1,234         2.1 GB
-npm-repo        npm       456           800 MB
-Total            -        1,690         2.9 GB
+maven-releases  maven            1234         2.1 GB
+npm-repo        npm               456         800 MB
+
+TOTAL           -               1690          2.9 GB
 ```

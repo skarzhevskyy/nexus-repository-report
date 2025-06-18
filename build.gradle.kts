@@ -28,15 +28,7 @@ repositories {
 
 dependencies {
 	implementation(platform("org.springframework.boot:spring-boot-dependencies:3.5.0"))
-	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("io.swagger.core.v3:swagger-annotations:2.2.32")
-	implementation("jakarta.validation:jakarta.validation-api")
-	implementation("com.fasterxml.jackson.core:jackson-databind")
-	// We have openApiNullable=false, but still some models have this imports
-	implementation("org.openapitools:jackson-databind-nullable:0.2.6")
-	// Allow for Dual jakarta and javax annotations, generated code uses javax.validation
-	implementation("javax.validation:validation-api:2.0.1.Final")
-	implementation("javax.annotation:javax.annotation-api:1.2")
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
 
 	// Command line arguments
 	implementation("info.picocli:picocli:4.7.7")
@@ -63,17 +55,23 @@ openApiValidate {
 }
 
 openApiGenerate {
-	generatorName.set("spring") // https://github.com/OpenAPITools/openapi-generator/blob/master/docs/generators/spring.md
+	generatorName.set("java")
 	inputSpec.set(apiDescriptionFile)
 	outputDir.set(generatedSourcesPath)
+
 	modelPackage.set("org.sonatype.nexus.model")
 	apiPackage.set("org.sonatype.nexus.api")
-	skipOperationExample.set(true) // there is an escape bug in spring OpenAPI Generator
-	configOptions.put("interfaceOnly", "true")
-	configOptions.put("useSpringBoot3", "true")
+
+	generateApiTests.set(false)
+	generateModelTests.set(false)
+	generateApiDocumentation.set(false)
+	generateModelDocumentation.set(false)
+
+	configOptions.put("library", "webclient")
 	configOptions.put("useJakartaEe", "true")
 	configOptions.put("openApiNullable", "false")
-	configOptions.put("useBeanValidation", "false") // but generator still uses package javax.validation
+	configOptions.put("useBeanValidation", "false")
+	configOptions.put("hideGenerationTimestamp", "true")
 }
 
 // Add the generated sources to the project
