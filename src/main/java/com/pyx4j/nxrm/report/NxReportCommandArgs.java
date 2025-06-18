@@ -8,15 +8,33 @@ import picocli.CommandLine;
 public class NxReportCommandArgs implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0",
-            description = "repositories-summary|groups-summary",
+            description = "repositories-summary",
             defaultValue = "repositories-summary")
     public String action;
 
     @CommandLine.Option(
-            names = {"-u", "--url"},
+            names = {"--url"},
             description = "Nexus Repository Manager URL", required = true,
             defaultValue = "${NEXUS_URL}")
     public String nexusServerUrl;
+
+    @CommandLine.Option(
+            names = {"--username"},
+            description = "Nexus Repository Manager username",
+            defaultValue = "${NEXUS_USERNAME}")
+    public String nexusUsername;
+
+    @CommandLine.Option(
+            names = {"--password"},
+            description = "Nexus Repository Manager password",
+            defaultValue = "${NEXUS_PASSWORD}")
+    public String nexusPassword;
+
+    @CommandLine.Option(
+            names = {"--token"},
+            description = "Nexus Repository Manager Token",
+            defaultValue = "${NEXUS_TOKEN}")
+    public String nexusToken;
 
     public Integer call() throws Exception {
         int exitCode = 0;
