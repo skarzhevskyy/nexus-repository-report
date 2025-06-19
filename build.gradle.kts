@@ -140,9 +140,9 @@ jib {
 		image = "eclipse-temurin:17-jre-alpine"
 	}
 	to {
-		// Use repository if provided, otherwise build locally
-		if (extra.has("container.image.repository")) {
-			image = "${extra["container.image.repository"]}/${extra["container.image.name"]}"
+		// Use repository if provided, otherwise build locally with 'gradle jibDockerBuild'
+		if (extra.has("container.image.registry")) {
+			image = "${extra["container.image.registry"]}/${extra["container.image.name"]}"
 		} else {
 			image = extra["container.image.name"].toString()
 		}
