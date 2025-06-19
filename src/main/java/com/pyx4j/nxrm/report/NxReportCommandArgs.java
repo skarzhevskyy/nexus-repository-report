@@ -41,6 +41,12 @@ public class NxReportCommandArgs implements Callable<Integer> {
             description = "Proxy server URL (e.g., proxy.example.com:8081 or http://proxy.example.com:8081)")
     public String proxyUrl;
 
+    @CommandLine.Option(
+            names = {"--sort"},
+            description = "Sort repositories by: ${COMPLETION-CANDIDATES} (default: components)",
+            converter = SortBy.CaseInsensitiveEnumConverter.class)
+    public SortBy sortBy = SortBy.COMPONENTS;
+
     public Integer call() throws Exception {
         int exitCode = 0;
         switch (action) {
