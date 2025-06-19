@@ -128,9 +128,8 @@ tasks.register("sbom", org.cyclonedx.gradle.CycloneDxTask::class) {
 	setIncludeLicenseText(false)
 }
 
-if (!hasProperty("container.image.repository")) {
-	extra["container.image.repository"] = "ghcr.io/skarzhevskyy"
-}
+// Default to local Docker daemon for development
+// When container.image.repository is not set, JIB builds to local Docker
 if (!hasProperty("container.image.name")) {
 	extra["container.image.name"] = project.name
 }
@@ -141,7 +140,12 @@ jib {
 		image = "eclipse-temurin:17-jre-alpine"
 	}
 	to {
-		image = "${extra["container.image.repository"]}/${extra["container.image.name"]}"
+		// Use repository if provided, otherwise build locally
+		if (extra.has("container.image.repository")) {
+			image = "${extra["container.image.repository"]}/${extra["container.image.name"]}"
+		} else {
+			image = extra["container.image.name"].toString()
+		}
 		tags = setOf("latest", version.toString())
 	}
 	container {
