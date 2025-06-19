@@ -128,13 +128,20 @@ tasks.register("sbom", org.cyclonedx.gradle.CycloneDxTask::class) {
 	setIncludeLicenseText(false)
 }
 
+if (!hasProperty("container.image.repository")) {
+	extra["container.image.repository"] = "ghcr.io/skarzhevskyy"
+}
+if (!hasProperty("container.image.name")) {
+	extra["container.image.name"] = project.name
+}
+
 // JIB configuration for Docker image creation
 jib {
 	from {
 		image = "eclipse-temurin:17-jre-alpine"
 	}
 	to {
-		image = "ghcr.io/skarzhevskyy/nexus-repository-report"
+		image = "${extra["container.image.repository"]}/${extra["container.image.name"]}"
 		tags = setOf("latest", version.toString())
 	}
 	container {

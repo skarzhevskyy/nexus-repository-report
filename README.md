@@ -17,6 +17,17 @@
 - Works with Nexus 3.x (REST API v1)
 - Outputs human-readable reports (console, JSON, CSV)
 
+## Sample Report output:
+
+```
+Repository      Format    Components    Total Size
+------------    -------   -----------   ------------
+maven-releases  maven            1234         2.1 GB
+npm-repo        npm               456         800 MB
+
+TOTAL           -               1690          2.9 GB
+```
+
 ## 🛠️ Usage
 
 1. Clone the repository:
@@ -36,6 +47,24 @@ NEXUS_PASSWORD=yourpassword
 3. Run the tool:
 ```
 ./gradlew run
+```
+
+### Proxy Support
+
+The tool supports proxy configuration through multiple methods:
+
+```bash
+# Command line proxy argument (highest priority)
+./gradlew run --args="--url https://nexus.example.com --proxy proxy.company.com:8080"
+./gradlew run --args="--url https://nexus.example.com --proxy http://user:pass@proxy.company.com:8080"
+
+# Environment variables
+export HTTP_PROXY=http://proxy.company.com:8080
+export HTTPS_PROXY=http://proxy.company.com:8080
+./gradlew run
+
+# Java system properties
+./gradlew run -Dhttp.proxyHost=proxy.company.com -Dhttp.proxyPort=8080
 ```
 
 ## 🐳 Docker Usage
@@ -91,31 +120,3 @@ docker run --rm \
 - `NEXUS_TOKEN` - Authentication token (alternative to username/password)
 - `HTTP_PROXY` - HTTP proxy URL
 - `HTTPS_PROXY` - HTTPS proxy URL
-
-### Proxy Support
-
-The tool supports proxy configuration through multiple methods:
-
-```bash
-# Command line proxy argument (highest priority)
-./gradlew run --args="--url https://nexus.example.com --proxy proxy.company.com:8080"
-./gradlew run --args="--url https://nexus.example.com --proxy http://user:pass@proxy.company.com:8080"
-
-# Environment variables
-export HTTP_PROXY=http://proxy.company.com:8080
-export HTTPS_PROXY=http://proxy.company.com:8080
-./gradlew run
-
-# Java system properties
-./gradlew run -Dhttp.proxyHost=proxy.company.com -Dhttp.proxyPort=8080
-```
-
-4. Sample output:
-```
-Repository      Format    Components    Total Size
-------------    -------   -----------   ------------
-maven-releases  maven            1234         2.1 GB
-npm-repo        npm               456         800 MB
-
-TOTAL           -               1690          2.9 GB
-```
