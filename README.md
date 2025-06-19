@@ -88,28 +88,12 @@ docker run --rm \
   --username admin \
   --password yourpassword
 
-# Using authentication token instead of username/password
+# Using authentication token instead of username/password and with proxy configuration
 docker run --rm \
   -e NEXUS_URL=https://nexus.example.com \
   -e NEXUS_TOKEN=your-nexus-token \
-  ghcr.io/skarzhevskyy/nexus-repository-report:latest
-
-# With proxy configuration
-docker run --rm \
-  -e NEXUS_URL=https://nexus.example.com \
-  -e NEXUS_USERNAME=admin \
-  -e NEXUS_PASSWORD=yourpassword \
-  -e HTTP_PROXY=http://proxy.company.com:8080 \
   -e HTTPS_PROXY=http://proxy.company.com:8080 \
   ghcr.io/skarzhevskyy/nexus-repository-report:latest
-
-# Using command line proxy option
-docker run --rm \
-  ghcr.io/skarzhevskyy/nexus-repository-report:latest \
-  --url https://nexus.example.com \
-  --username admin \
-  --password yourpassword \
-  --proxy proxy.company.com:8080
 ```
 
 ### Available Environment Variables
