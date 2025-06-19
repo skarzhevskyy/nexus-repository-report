@@ -17,6 +17,17 @@
 - Works with Nexus 3.x (REST API v1)
 - Outputs human-readable reports (console, JSON, CSV)
 
+## Sample Report output:
+
+```
+Repository      Format    Components    Total Size
+------------    -------   -----------   ------------
+maven-releases  maven            1234         2.1 GB
+npm-repo        npm               456         800 MB
+
+TOTAL           -               1690          2.9 GB
+```
+
 ## 🛠️ Usage
 
 1. Clone the repository:
@@ -56,12 +67,40 @@ export HTTPS_PROXY=http://proxy.company.com:8080
 ./gradlew run -Dhttp.proxyHost=proxy.company.com -Dhttp.proxyPort=8080
 ```
 
-4. Sample output:
-```
-Repository      Format    Components    Total Size
-------------    -------   -----------   ------------
-maven-releases  maven            1234         2.1 GB
-npm-repo        npm               456         800 MB
+## 🐳 Docker Usage
 
-TOTAL           -               1690          2.9 GB
+The application is also available as a Docker container from GitHub Container Registry.
+
+### Running with Docker
+
+```bash
+# Basic usage with environment variables
+docker run --rm \
+  -e NEXUS_URL=https://nexus.example.com \
+  -e NEXUS_USERNAME=admin \
+  -e NEXUS_PASSWORD=yourpassword \
+  ghcr.io/skarzhevskyy/nexus-repository-report:latest
+
+# Using command line arguments
+docker run --rm \
+  ghcr.io/skarzhevskyy/nexus-repository-report:latest \
+  --url https://nexus.example.com \
+  --username admin \
+  --password yourpassword
+
+# Using authentication token instead of username/password and with proxy configuration
+docker run --rm \
+  -e NEXUS_URL=https://nexus.example.com \
+  -e NEXUS_TOKEN=your-nexus-token \
+  -e HTTPS_PROXY=http://proxy.company.com:8080 \
+  ghcr.io/skarzhevskyy/nexus-repository-report:latest
 ```
+
+### Available Environment Variables
+
+- `NEXUS_URL` - Nexus Repository Manager URL (required)
+- `NEXUS_USERNAME` - Username for authentication
+- `NEXUS_PASSWORD` - Password for authentication
+- `NEXUS_TOKEN` - Authentication token (alternative to username/password)
+- `HTTP_PROXY` - HTTP proxy URL
+- `HTTPS_PROXY` - HTTPS proxy URL
