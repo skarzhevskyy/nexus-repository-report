@@ -2,11 +2,11 @@ package com.pyx4j.nxrm.report;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.pyx4j.nxrm.report.model.ComponentsSummary;
-import org.junit.jupiter.api.Test;
-
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+
+import com.pyx4j.nxrm.report.model.ComponentsSummary;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for NxReportConsole functionality.
@@ -21,15 +21,16 @@ class NxReportConsoleTest {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintStream printStream = new PrintStream(outputStream);
-        
+
         NxReportConsole.printSummary(summary, SortBy.COMPONENTS, printStream);
 
         String output = outputStream.toString();
-        assertThat(output).contains("Repository Report Summary:");
-        assertThat(output).contains("maven-central");
-        assertThat(output).contains("npm-proxy");
-        assertThat(output).contains("TOTAL");
-        
+        assertThat(output)
+                .contains("Repository Report Summary:")
+                .contains("maven-central")
+                .contains("npm-proxy")
+                .contains("TOTAL");
+
         // Check that repositories are sorted by components (maven-central should come first with 100 components)
         int mavenIndex = output.indexOf("maven-central");
         int npmIndex = output.indexOf("npm-proxy");
@@ -44,13 +45,13 @@ class NxReportConsoleTest {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintStream printStream = new PrintStream(outputStream);
-        
+
         NxReportConsole.printSummary(summary, SortBy.NAME, printStream);
 
         String output = outputStream.toString();
         assertThat(output).contains("very-long-repository-name-that-exceeds-thirty-characters");
         assertThat(output).contains("short");
-        
+
         // Verify that the format doesn't break with long names
         String[] lines = output.split("\n");
         boolean foundLongName = false;
@@ -74,14 +75,14 @@ class NxReportConsoleTest {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintStream printStream = new PrintStream(outputStream);
-        
+
         NxReportConsole.printSummary(summary, SortBy.NAME, printStream);
 
         String output = outputStream.toString();
         int alphaIndex = output.indexOf("alpha-repo");
         int betaIndex = output.indexOf("beta-repo");
         int zebraIndex = output.indexOf("zebra-repo");
-        
+
         assertThat(alphaIndex).isLessThan(betaIndex);
         assertThat(betaIndex).isLessThan(zebraIndex);
     }
@@ -95,14 +96,14 @@ class NxReportConsoleTest {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintStream printStream = new PrintStream(outputStream);
-        
+
         NxReportConsole.printSummary(summary, SortBy.SIZE, printStream);
 
         String output = outputStream.toString();
         int largeIndex = output.indexOf("large-repo");
         int mediumIndex = output.indexOf("medium-repo");
         int smallIndex = output.indexOf("small-repo");
-        
+
         // Should be sorted largest to smallest
         assertThat(largeIndex).isLessThan(mediumIndex);
         assertThat(mediumIndex).isLessThan(smallIndex);
@@ -117,14 +118,14 @@ class NxReportConsoleTest {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintStream printStream = new PrintStream(outputStream);
-        
+
         NxReportConsole.printSummary(summary, SortBy.COMPONENTS, printStream);
 
         String output = outputStream.toString();
         int manyIndex = output.indexOf("many-components");
         int someIndex = output.indexOf("some-components");
         int fewIndex = output.indexOf("few-components");
-        
+
         // Should be sorted most to least components
         assertThat(manyIndex).isLessThan(someIndex);
         assertThat(someIndex).isLessThan(fewIndex);
@@ -138,7 +139,7 @@ class NxReportConsoleTest {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintStream printStream = new PrintStream(outputStream);
-        
+
         NxReportConsole.printSummary(summary, SortBy.NAME, printStream);
 
         String output = outputStream.toString();

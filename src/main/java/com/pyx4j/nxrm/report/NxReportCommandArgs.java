@@ -43,7 +43,8 @@ public class NxReportCommandArgs implements Callable<Integer> {
 
     @CommandLine.Option(
             names = {"--sort"},
-            description = "Sort repositories by: ${COMPLETION-CANDIDATES} (default: components)")
+            description = "Sort repositories by: ${COMPLETION-CANDIDATES} (default: components)",
+            converter = SortBy.CaseInsensitiveEnumConverter.class)
     public SortBy sortBy = SortBy.COMPONENTS;
 
     public Integer call() throws Exception {
