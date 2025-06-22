@@ -47,6 +47,41 @@ public class NxReportCommandArgs implements Callable<Integer> {
             converter = SortBy.CaseInsensitiveEnumConverter.class)
     public SortBy sortBy = SortBy.COMPONENTS;
 
+    @CommandLine.Option(
+            names = {"--created-before"},
+            description = "Filter components created before this date (ISO-8601 format or 'Nd' for N days ago)")
+    public String createdBefore;
+
+    @CommandLine.Option(
+            names = {"--created-after"},
+            description = "Filter components created after this date (ISO-8601 format or 'Nd' for N days ago)")
+    public String createdAfter;
+
+    @CommandLine.Option(
+            names = {"--updated-before"},
+            description = "Filter components updated before this date (ISO-8601 format or 'Nd' for N days ago)")
+    public String updatedBefore;
+
+    @CommandLine.Option(
+            names = {"--updated-after"},
+            description = "Filter components updated after this date (ISO-8601 format or 'Nd' for N days ago)")
+    public String updatedAfter;
+
+    @CommandLine.Option(
+            names = {"--downloaded-before"},
+            description = "Filter components downloaded before this date (ISO-8601 format or 'Nd' for N days ago)")
+    public String downloadedBefore;
+
+    @CommandLine.Option(
+            names = {"--downloaded-after"},
+            description = "Filter components downloaded after this date (ISO-8601 format or 'Nd' for N days ago)")
+    public String downloadedAfter;
+
+    @CommandLine.Option(
+            names = {"--never-downloaded"},
+            description = "Only include components that have never been downloaded")
+    public boolean neverDownloaded;
+
     public Integer call() throws Exception {
         int exitCode = 0;
         switch (action) {
