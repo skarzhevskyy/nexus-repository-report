@@ -50,4 +50,91 @@ class CommandLineIntegrationTest {
         cmd.parseArgs("--url", "https://nexus.example.com", "--sort", "SIZE");
         assertThat(args.sortBy).isEqualTo(SortBy.SIZE);
     }
+
+    @Test
+    void commandLineArgs_withCreatedFilters_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("--url", "https://nexus.example.com",
+                "--created-before", "2024-06-01T00:00:00Z",
+                "--created-after", "30d");
+
+        assertThat(args.createdBefore).isEqualTo("2024-06-01T00:00:00Z");
+        assertThat(args.createdAfter).isEqualTo("30d");
+    }
+
+    @Test
+    void commandLineArgs_withUpdatedFilters_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("--url", "https://nexus.example.com",
+                "--updated-before", "2024-06-01",
+                "--updated-after", "7d");
+
+        assertThat(args.updatedBefore).isEqualTo("2024-06-01");
+        assertThat(args.updatedAfter).isEqualTo("7d");
+    }
+
+    @Test
+    void commandLineArgs_withDownloadedFilters_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("--url", "https://nexus.example.com",
+                "--downloaded-before", "2024-12-01T12:00:00Z",
+                "--downloaded-after", "1d");
+
+        assertThat(args.downloadedBefore).isEqualTo("2024-12-01T12:00:00Z");
+        assertThat(args.downloadedAfter).isEqualTo("1d");
+    }
+
+    @Test
+    void commandLineArgs_withNeverDownloadedFlag_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("--url", "https://nexus.example.com", "--never-downloaded");
+
+        assertThat(args.neverDownloaded).isTrue();
+    }
+
+    @Test
+    void commandLineArgs_withAllFilters_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("--url", "https://nexus.example.com",
+                "--created-before", "2024-06-01T00:00:00Z",
+                "--created-after", "30d",
+                "--updated-before", "2024-05-01",
+                "--updated-after", "7d",
+                "--downloaded-before", "2024-04-01T12:00:00Z",
+                "--downloaded-after", "1d");
+
+        assertThat(args.createdBefore).isEqualTo("2024-06-01T00:00:00Z");
+        assertThat(args.createdAfter).isEqualTo("30d");
+        assertThat(args.updatedBefore).isEqualTo("2024-05-01");
+        assertThat(args.updatedAfter).isEqualTo("7d");
+        assertThat(args.downloadedBefore).isEqualTo("2024-04-01T12:00:00Z");
+        assertThat(args.downloadedAfter).isEqualTo("1d");
+        assertThat(args.neverDownloaded).isFalse();
+    }
+
+    @Test
+    void commandLineArgs_withoutDateFilters_shouldHaveNullValues() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("--url", "https://nexus.example.com");
+
+        assertThat(args.createdBefore).isNull();
+        assertThat(args.createdAfter).isNull();
+        assertThat(args.updatedBefore).isNull();
+        assertThat(args.updatedAfter).isNull();
+        assertThat(args.downloadedBefore).isNull();
+        assertThat(args.downloadedAfter).isNull();
+        assertThat(args.neverDownloaded).isFalse();
+    }
 }

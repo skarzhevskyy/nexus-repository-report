@@ -49,6 +49,46 @@ NEXUS_PASSWORD=yourpassword
 ./gradlew run
 ```
 
+### Filtering Options
+
+The tool supports filtering components based on their creation, update, and download timestamps:
+
+```bash
+# Filter components created in the last 30 days
+./gradlew run --args="--url https://nexus.example.com --created-after 30d"
+
+# Filter components created before a specific date
+./gradlew run --args="--url https://nexus.example.com --created-before 2024-06-01"
+
+# Filter components updated within a date range
+./gradlew run --args="--url https://nexus.example.com --updated-after 2024-06-01 --updated-before 2024-06-30"
+
+# Filter components downloaded in the last 7 days
+./gradlew run --args="--url https://nexus.example.com --downloaded-after 7d"
+
+# Only include components that have never been downloaded
+./gradlew run --args="--url https://nexus.example.com --never-downloaded"
+
+# Combine multiple filters (AND logic)
+./gradlew run --args="--url https://nexus.example.com --created-after 30d --never-downloaded"
+```
+
+#### Available Filter Options
+
+- `--created-before <date|days-ago>` - Filter components created before this date
+- `--created-after <date|days-ago>` - Filter components created after this date  
+- `--updated-before <date|days-ago>` - Filter components updated before this date
+- `--updated-after <date|days-ago>` - Filter components updated after this date
+- `--downloaded-before <date|days-ago>` - Filter components downloaded before this date
+- `--downloaded-after <date|days-ago>` - Filter components downloaded after this date
+- `--never-downloaded` - Only include components that have never been downloaded
+
+**Date Formats:**
+- ISO-8601 format: `2024-06-01T00:00:00Z` or just date `2024-06-01`
+- Days ago: `30d` (30 days ago), `7d` (7 days ago), `1d` (1 day ago)
+
+**Note:** Filters are composable using AND logic. Multiple filters can be combined except `--never-downloaded` cannot be used with `--downloaded-before` or `--downloaded-after`.
+
 ### Proxy Support
 
 The tool supports proxy configuration through multiple methods:

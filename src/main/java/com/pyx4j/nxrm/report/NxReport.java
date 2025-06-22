@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
 import com.pyx4j.nxrm.report.model.ComponentsSummary;
 import org.slf4j.Logger;
@@ -60,6 +61,9 @@ public final class NxReport {
     }
 
     public static int generateReport(NxReportCommandArgs args) {
+        // Create component filter based on command line arguments
+        var componentFilter = ComponentFilter.createFilter(args);
+
         // Create our summary object to store results
         ComponentsSummary summary = new ComponentsSummary();
 
@@ -75,7 +79,7 @@ public final class NxReport {
                 .doOnNext(repository -> log.debug("Found {} repository of type {}", repository.getName(), repository.getType()))
                 .filter(repository -> !repository.getType().equals(AbstractApiRepository.TypeEnum.GROUP)) // Exclude group repositories
                 .doOnNext(repository -> log.trace("Processing repository: {}", repository.getName()))
-                .flatMap(repository -> processRepositoryComponents(apiClient, repository, summary))
+                .flatMap(repository -> processRepositoryComponents(apiClient, repository, summary, componentFilter))
                 .collectList()
                 .doOnSuccess(allRepos -> {
                     // Output the summary with the specified sort option
@@ -101,30 +105,37 @@ public final class NxReport {
         return resultCode.get();
     }
 
-    private static Mono<Void> processRepositoryComponents(ApiClient apiClient, AbstractApiRepository repository, ComponentsSummary summary) {
+    private static Mono<Void> processRepositoryComponents(ApiClient apiClient, AbstractApiRepository repository, ComponentsSummary summary, Predicate<ComponentXO> componentFilter) {
         ComponentsApi componentsApi = new ComponentsApi(apiClient);
-        return processPaginatedComponents(componentsApi, repository, null, summary);
+        return processPaginatedComponents(componentsApi, repository, null, summary, componentFilter);
     }
 
-    private static Mono<Void> processPaginatedComponents(ComponentsApi componentsApi, AbstractApiRepository repository, String continuationToken, ComponentsSummary summary) {
+    private static Mono<Void> processPaginatedComponents(ComponentsApi componentsApi, AbstractApiRepository repository, String continuationToken, ComponentsSummary summary, Predicate<ComponentXO> componentFilter) {
         final String repoName = Objects.requireNonNull(repository.getName(), "Repository name cannot be null");
         log.debug("Fetching components page for repository {} with token: {}", repoName, continuationToken);
 
         return componentsApi.getComponents(repoName, continuationToken)
                 .flatMap(page -> {
                     if (page != null && page.getItems() != null) {
-                        long componentCount = page.getItems().size();
-                        long sizeBytes = calculateTotalSize(page.getItems());
+                        // Apply filter to components
+                        List<ComponentXO> filteredComponents = page.getItems().stream()
+                                .filter(componentFilter)
+                                .toList();
 
-                        log.debug("Repository {} page has {} components with total size of {} bytes",
-                                repoName, componentCount, sizeBytes);
+                        long componentCount = filteredComponents.size();
+                        long sizeBytes = calculateTotalSize(filteredComponents);
 
-                        summary.addRepositoryStats(repoName, repository.getFormat(), componentCount, sizeBytes);
+                        log.debug("Repository {} page has {} components (filtered from {}) with total size of {} bytes",
+                                repoName, componentCount, page.getItems().size(), sizeBytes);
+
+                        if (componentCount > 0) {
+                            summary.addRepositoryStats(repoName, repository.getFormat(), componentCount, sizeBytes);
+                        }
 
                         // If we have a continuation token, process next page
                         String nextContinuationToken = page.getContinuationToken();
                         if (nextContinuationToken != null && !nextContinuationToken.isEmpty()) {
-                            return processPaginatedComponents(componentsApi, repository, nextContinuationToken, summary);
+                            return processPaginatedComponents(componentsApi, repository, nextContinuationToken, summary, componentFilter);
                         }
                     } else {
                         log.debug("Repository {} page has no components", repoName);
