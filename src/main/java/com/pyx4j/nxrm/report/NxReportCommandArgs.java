@@ -9,9 +9,9 @@ import picocli.CommandLine;
 public class NxReportCommandArgs implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0",
-            description = "Report type: repositories-summary, top-groups",
-            defaultValue = "repositories-summary")
-    public String action;
+            description = "Report type: all, repositories-summary, top-groups",
+            defaultValue = "all")
+    public String report;
 
     @CommandLine.Option(
             names = {"--url"},
@@ -111,7 +111,13 @@ public class NxReportCommandArgs implements Callable<Integer> {
 
     public Integer call() throws Exception {
         int exitCode = 0;
-        switch (action) {
+        switch (report) {
+            case "all":
+                exitCode = NxReport.generateReport(this);
+                if (exitCode == 0) {
+                    exitCode = NxReport.generateGroupsReport(this);
+                }
+                break;
             case "repositories-summary":
                 exitCode = NxReport.generateReport(this);
                 break;

@@ -63,20 +63,37 @@ NEXUS_PASSWORD=yourpassword
 ./gradlew run
 ```
 
-To generate a Top Consuming Groups report:
-```
+This will run all reports by default (both repositories summary and top consuming groups).
+
+To generate specific reports:
+```bash
+# Generate all reports (default)
+./gradlew run --args="all --url https://nexus.example.com --username admin --password yourpassword"
+
+# Generate only repositories summary
+./gradlew run --args="repositories-summary --url https://nexus.example.com --username admin --password yourpassword"
+
+# Generate only top consuming groups report
 ./gradlew run --args="top-groups --url https://nexus.example.com --username admin --password yourpassword"
 ```
+
+### Report Types
+
+The tool supports three report types:
+
+- **`all`** (default): Generates both repositories summary and top consuming groups reports
+- **`repositories-summary`**: Shows storage consumption per repository with component counts
+- **`top-groups`**: Shows top consuming groups (e.g., Maven groupId, npm scope) with configurable sorting and limits
 
 ### Filtering Options
 
 The tool supports filtering components based on their creation, update, and download timestamps:
 
 ```bash
-# Filter components created in the last 30 days
+# Filter components created in the last 30 days (generates all reports)
 ./gradlew run --args="--url https://nexus.example.com --created-after 30d"
 
-# Filter components created before a specific date
+# Filter components created before a specific date (generates all reports)
 ./gradlew run --args="--url https://nexus.example.com --created-before 2024-06-01"
 
 # Filter components updated within a date range
@@ -147,7 +164,7 @@ The tool also supports filtering components by repository, group, and name with 
 The tool can generate a report showing the top consuming groups (e.g., Maven groupId, npm scope):
 
 ```bash
-# Generate top 10 groups report sorted by components (default)
+# Generate only top 10 groups report sorted by components
 ./gradlew run --args="top-groups --url https://nexus.example.com"
 
 # Show top 5 groups sorted by total size

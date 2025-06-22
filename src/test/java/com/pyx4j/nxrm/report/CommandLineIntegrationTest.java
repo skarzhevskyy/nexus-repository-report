@@ -221,7 +221,7 @@ class CommandLineIntegrationTest {
         cmd.parseArgs("top-groups", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass",
                 "--top-groups", "5", "--group-sort", "size");
 
-        assertThat(args.action).isEqualTo("top-groups");
+        assertThat(args.report).isEqualTo("top-groups");
         assertThat(args.nexusServerUrl).isEqualTo("https://nexus.example.com");
         assertThat(args.topGroups).isEqualTo(5);
         assertThat(args.groupSort).isEqualTo(SortBy.SIZE);
@@ -234,7 +234,7 @@ class CommandLineIntegrationTest {
 
         cmd.parseArgs("top-groups", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass");
 
-        assertThat(args.action).isEqualTo("top-groups");
+        assertThat(args.report).isEqualTo("top-groups");
         assertThat(args.topGroups).isEqualTo(10); // Default value
         assertThat(args.groupSort).isEqualTo(SortBy.COMPONENTS); // Default value
     }
@@ -248,5 +248,35 @@ class CommandLineIntegrationTest {
                 "--group-sort", "Components");
 
         assertThat(args.groupSort).isEqualTo(SortBy.COMPONENTS);
+    }
+
+    @Test
+    void commandLineArgs_withAllReport_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("all", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass");
+
+        assertThat(args.report).isEqualTo("all");
+    }
+
+    @Test
+    void commandLineArgs_withRepositoriesSummaryReport_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("repositories-summary", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass");
+
+        assertThat(args.report).isEqualTo("repositories-summary");
+    }
+
+    @Test
+    void commandLineArgs_withDefaultReport_shouldUseAll() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("--url", "https://nexus.example.com", "--username", "user", "--password", "pass");
+
+        assertThat(args.report).isEqualTo("all"); // Default value
     }
 }
