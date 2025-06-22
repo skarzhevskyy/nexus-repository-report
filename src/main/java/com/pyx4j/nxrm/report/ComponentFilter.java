@@ -135,10 +135,10 @@ final class ComponentFilter {
     /**
      * Checks if a component matches the provided component-level filters.
      *
-     * @param component The component to test
+     * @param component    The component to test
      * @param repositories List of repository patterns (OR logic)
-     * @param groups List of group patterns (OR logic)
-     * @param names List of name patterns (OR logic)
+     * @param groups       List of group patterns (OR logic)
+     * @param names        List of name patterns (OR logic)
      * @return true if the component matches all provided filters (AND logic between filter types)
      */
     private static boolean matchesComponentFilters(@NonNull ComponentXO component,
@@ -161,9 +161,7 @@ final class ComponentFilter {
 
         // Name filter
         if (names != null && !names.isEmpty()) {
-            if (!matchesAnyPattern(component.getName(), names)) {
-                return false;
-            }
+            return matchesAnyPattern(component.getName(), names);
         }
 
         return true;
@@ -172,7 +170,7 @@ final class ComponentFilter {
     /**
      * Checks if a value matches any of the provided wildcard patterns.
      *
-     * @param value The value to test (can be null)
+     * @param value    The value to test (can be null)
      * @param patterns List of wildcard patterns
      * @return true if the value matches any pattern, false if value is null or no patterns match
      */
@@ -188,7 +186,7 @@ final class ComponentFilter {
      * Tests if a value matches a wildcard pattern.
      * Supports '*' (any characters) and '?' (single character) wildcards.
      *
-     * @param value The value to test
+     * @param value   The value to test
      * @param pattern The wildcard pattern
      * @return true if the value matches the pattern
      */

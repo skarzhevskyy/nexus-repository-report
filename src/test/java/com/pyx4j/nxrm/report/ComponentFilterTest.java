@@ -258,12 +258,12 @@ class ComponentFilterTest {
         component.setRepository(repository);
         component.setGroup(group);
         component.setName(name);
-        
+
         // Add a dummy asset so the component passes the basic asset check
         AssetXO asset = new AssetXO();
         asset.setBlobCreated(OffsetDateTime.parse("2024-06-01T00:00:00Z"));
         component.setAssets(List.of(asset));
-        
+
         return component;
     }
 

@@ -101,7 +101,7 @@ The tool also supports filtering components by repository, group, and name with 
 ../gradlew run --args="--url https://nexus.example.com --repository 'maven-*' --repository npm-repo"
 
 # Group filtering with wildcards and multiple groups
-../gradlew run --args="--url https://nexus.example.com --group 'org.spring.*' --group '*acme*' --repository 'maven-*'"
+../gradlew run --args="--url https://nexus.example.com --group 'org.spring*' --group '*acme*' --repository 'maven-*'"
 
 # Name filtering with wildcards
 ../gradlew run --args="--url https://nexus.example.com --name 'spring-*' --name 'junit?'"
