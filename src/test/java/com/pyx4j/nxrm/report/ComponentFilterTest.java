@@ -252,4 +252,231 @@ class ComponentFilterTest {
         component.setAssets(List.of(asset));
         return component;
     }
+
+    private ComponentXO createComponentWithFields(String repository, String group, String name) {
+        ComponentXO component = new ComponentXO();
+        component.setRepository(repository);
+        component.setGroup(group);
+        component.setName(name);
+
+        // Add a dummy asset so the component passes the basic asset check
+        AssetXO asset = new AssetXO();
+        asset.setBlobCreated(OffsetDateTime.parse("2024-06-01T00:00:00Z"));
+        component.setAssets(List.of(asset));
+
+        return component;
+    }
+
+    @Test
+    void createFilter_withRepositoryFilter_shouldFilterCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        args.repositories = List.of("my-repo");
+
+        Predicate<ComponentXO> filter = ComponentFilter.createFilter(args);
+
+        // Component with matching repository should pass
+        ComponentXO matchingComponent = createComponentWithFields("my-repo", "com.example", "my-app");
+        assertThat(filter.test(matchingComponent)).isTrue();
+
+        // Component with different repository should be filtered out
+        ComponentXO nonMatchingComponent = createComponentWithFields("other-repo", "com.example", "my-app");
+        assertThat(filter.test(nonMatchingComponent)).isFalse();
+
+        // Component with null repository should be filtered out
+        ComponentXO nullRepoComponent = createComponentWithFields(null, "com.example", "my-app");
+        assertThat(filter.test(nullRepoComponent)).isFalse();
+    }
+
+    @Test
+    void createFilter_withRepositoryWildcardFilter_shouldFilterCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        args.repositories = List.of("my-*");
+
+        Predicate<ComponentXO> filter = ComponentFilter.createFilter(args);
+
+        // Component with matching wildcard pattern should pass
+        ComponentXO matchingComponent = createComponentWithFields("my-repo", "com.example", "my-app");
+        assertThat(filter.test(matchingComponent)).isTrue();
+
+        ComponentXO anotherMatchingComponent = createComponentWithFields("my-other-repo", "com.example", "my-app");
+        assertThat(filter.test(anotherMatchingComponent)).isTrue();
+
+        // Component not matching wildcard pattern should be filtered out
+        ComponentXO nonMatchingComponent = createComponentWithFields("other-repo", "com.example", "my-app");
+        assertThat(filter.test(nonMatchingComponent)).isFalse();
+    }
+
+    @Test
+    void createFilter_withMultipleRepositoryFilters_shouldUseOrLogic() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        args.repositories = List.of("repo1", "repo2");
+
+        Predicate<ComponentXO> filter = ComponentFilter.createFilter(args);
+
+        // Component matching first repository should pass
+        ComponentXO firstMatch = createComponentWithFields("repo1", "com.example", "my-app");
+        assertThat(filter.test(firstMatch)).isTrue();
+
+        // Component matching second repository should pass
+        ComponentXO secondMatch = createComponentWithFields("repo2", "com.example", "my-app");
+        assertThat(filter.test(secondMatch)).isTrue();
+
+        // Component not matching any repository should be filtered out
+        ComponentXO noMatch = createComponentWithFields("repo3", "com.example", "my-app");
+        assertThat(filter.test(noMatch)).isFalse();
+    }
+
+    @Test
+    void createFilter_withGroupFilter_shouldFilterCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        args.groups = List.of("com.example");
+
+        Predicate<ComponentXO> filter = ComponentFilter.createFilter(args);
+
+        // Component with matching group should pass
+        ComponentXO matchingComponent = createComponentWithFields("my-repo", "com.example", "my-app");
+        assertThat(filter.test(matchingComponent)).isTrue();
+
+        // Component with different group should be filtered out
+        ComponentXO nonMatchingComponent = createComponentWithFields("my-repo", "org.other", "my-app");
+        assertThat(filter.test(nonMatchingComponent)).isFalse();
+
+        // Component with null group should be filtered out
+        ComponentXO nullGroupComponent = createComponentWithFields("my-repo", null, "my-app");
+        assertThat(filter.test(nullGroupComponent)).isFalse();
+    }
+
+    @Test
+    void createFilter_withGroupWildcardFilter_shouldFilterCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        args.groups = List.of("com.example.*");
+
+        Predicate<ComponentXO> filter = ComponentFilter.createFilter(args);
+
+        // Component with matching wildcard pattern should pass
+        ComponentXO matchingComponent = createComponentWithFields("my-repo", "com.example.service", "my-app");
+        assertThat(filter.test(matchingComponent)).isTrue();
+
+        ComponentXO anotherMatchingComponent = createComponentWithFields("my-repo", "com.example.util", "my-app");
+        assertThat(filter.test(anotherMatchingComponent)).isTrue();
+
+        // Component not matching wildcard pattern should be filtered out
+        ComponentXO nonMatchingComponent = createComponentWithFields("my-repo", "org.other", "my-app");
+        assertThat(filter.test(nonMatchingComponent)).isFalse();
+    }
+
+    @Test
+    void createFilter_withNameFilter_shouldFilterCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        args.names = List.of("spring-*");
+
+        Predicate<ComponentXO> filter = ComponentFilter.createFilter(args);
+
+        // Component with matching name pattern should pass
+        ComponentXO matchingComponent = createComponentWithFields("my-repo", "com.example", "spring-boot");
+        assertThat(filter.test(matchingComponent)).isTrue();
+
+        ComponentXO anotherMatchingComponent = createComponentWithFields("my-repo", "com.example", "spring-core");
+        assertThat(filter.test(anotherMatchingComponent)).isTrue();
+
+        // Component not matching name pattern should be filtered out
+        ComponentXO nonMatchingComponent = createComponentWithFields("my-repo", "com.example", "other-lib");
+        assertThat(filter.test(nonMatchingComponent)).isFalse();
+
+        // Component with null name should be filtered out
+        ComponentXO nullNameComponent = createComponentWithFields("my-repo", "com.example", null);
+        assertThat(filter.test(nullNameComponent)).isFalse();
+    }
+
+    @Test
+    void createFilter_withQuestionMarkWildcard_shouldFilterCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        args.names = List.of("app?");
+
+        Predicate<ComponentXO> filter = ComponentFilter.createFilter(args);
+
+        // Component with name matching ? pattern should pass
+        ComponentXO matchingComponent = createComponentWithFields("my-repo", "com.example", "app1");
+        assertThat(filter.test(matchingComponent)).isTrue();
+
+        ComponentXO anotherMatchingComponent = createComponentWithFields("my-repo", "com.example", "appx");
+        assertThat(filter.test(anotherMatchingComponent)).isTrue();
+
+        // Component with name not matching ? pattern should be filtered out
+        ComponentXO nonMatchingComponent = createComponentWithFields("my-repo", "com.example", "app12");
+        assertThat(filter.test(nonMatchingComponent)).isFalse();
+
+        ComponentXO anotherNonMatchingComponent = createComponentWithFields("my-repo", "com.example", "app");
+        assertThat(filter.test(anotherNonMatchingComponent)).isFalse();
+    }
+
+    @Test
+    void createFilter_withCombinedFilters_shouldUseAndLogic() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        args.repositories = List.of("my-repo");
+        args.groups = List.of("com.example");
+        args.names = List.of("spring-*");
+
+        Predicate<ComponentXO> filter = ComponentFilter.createFilter(args);
+
+        // Component matching all filters should pass
+        ComponentXO allMatch = createComponentWithFields("my-repo", "com.example", "spring-boot");
+        assertThat(filter.test(allMatch)).isTrue();
+
+        // Component missing repository match should be filtered out
+        ComponentXO missingRepo = createComponentWithFields("other-repo", "com.example", "spring-boot");
+        assertThat(filter.test(missingRepo)).isFalse();
+
+        // Component missing group match should be filtered out
+        ComponentXO missingGroup = createComponentWithFields("my-repo", "org.other", "spring-boot");
+        assertThat(filter.test(missingGroup)).isFalse();
+
+        // Component missing name match should be filtered out
+        ComponentXO missingName = createComponentWithFields("my-repo", "com.example", "other-lib");
+        assertThat(filter.test(missingName)).isFalse();
+    }
+
+    @Test
+    void createFilter_withComponentFiltersAndDateFilters_shouldCombineCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        args.repositories = List.of("my-repo");
+        args.createdAfter = "2024-06-01T00:00:00Z";
+
+        Predicate<ComponentXO> filter = ComponentFilter.createFilter(args);
+
+        // Create component matching repository but with old creation date
+        ComponentXO component = createComponentWithFields("my-repo", "com.example", "my-app");
+        // Override the asset with old creation date
+        AssetXO oldAsset = new AssetXO();
+        oldAsset.setBlobCreated(OffsetDateTime.parse("2024-05-30T00:00:00Z"));
+        component.setAssets(List.of(oldAsset));
+
+        // Should be filtered out due to date filter
+        assertThat(filter.test(component)).isFalse();
+
+        // Create component matching repository with new creation date
+        ComponentXO newComponent = createComponentWithFields("my-repo", "com.example", "my-app");
+        AssetXO newAsset = new AssetXO();
+        newAsset.setBlobCreated(OffsetDateTime.parse("2024-06-02T00:00:00Z"));
+        newComponent.setAssets(List.of(newAsset));
+
+        // Should pass both filters
+        assertThat(filter.test(newComponent)).isTrue();
+    }
+
+    @Test
+    void createFilter_withSpecialRegexCharacters_shouldEscapeCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        args.names = List.of("app.test");
+
+        Predicate<ComponentXO> filter = ComponentFilter.createFilter(args);
+
+        // Component with exact match should pass
+        ComponentXO exactMatch = createComponentWithFields("my-repo", "com.example", "app.test");
+        assertThat(filter.test(exactMatch)).isTrue();
+
+        // Component where . is treated as literal, not regex wildcard, should be filtered out
+        ComponentXO regexMatch = createComponentWithFields("my-repo", "com.example", "appXtest");
+        assertThat(filter.test(regexMatch)).isFalse();
+    }
 }

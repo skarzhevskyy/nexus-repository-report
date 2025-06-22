@@ -89,6 +89,40 @@ The tool supports filtering components based on their creation, update, and down
 
 **Note:** Filters are composable using AND logic. Multiple filters can be combined except `--never-downloaded` cannot be used with `--downloaded-before` or `--downloaded-after`.
 
+#### Component Filtering
+
+The tool also supports filtering components by repository, group, and name with wildcard pattern support:
+
+```bash
+# Filter by specific repository
+../gradlew run --args="--url https://nexus.example.com --repository maven-central"
+
+# Multiple repositories with wildcards (OR logic)
+../gradlew run --args="--url https://nexus.example.com --repository 'maven-*' --repository npm-repo"
+
+# Group filtering with wildcards and multiple groups
+../gradlew run --args="--url https://nexus.example.com --group 'org.spring*' --group '*acme*' --repository 'maven-*'"
+
+# Name filtering with wildcards
+../gradlew run --args="--url https://nexus.example.com --name 'spring-*' --name 'junit?'"
+
+# Combined component and date filtering (AND logic between different filter types)
+../gradlew run --args="--url https://nexus.example.com --repository 'maven-*' --group 'com.example.*' --name 'spring-*' --created-after 30d"
+```
+
+**Component Filter Options:**
+- `--repository <pattern>` - Filter components by repository name (can be specified multiple times)
+- `--group <pattern>` - Filter components by group (can be specified multiple times)
+- `--name <pattern>` - Filter components by name (can be specified multiple times)
+
+**Wildcard Support:**
+- `*` - Matches any number of characters
+- `?` - Matches a single character
+
+**Filter Logic:**
+- Multiple values for the same filter type use OR logic (e.g., multiple `--group` arguments)
+- Different filter types use AND logic (e.g., `--repository` AND `--group` AND `--name`)
+
 ### Proxy Support
 
 The tool supports proxy configuration through multiple methods:
