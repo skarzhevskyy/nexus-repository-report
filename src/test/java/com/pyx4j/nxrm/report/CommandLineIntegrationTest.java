@@ -136,5 +136,80 @@ class CommandLineIntegrationTest {
         assertThat(args.downloadedBefore).isNull();
         assertThat(args.downloadedAfter).isNull();
         assertThat(args.neverDownloaded).isFalse();
+        assertThat(args.repositories).isNull();
+        assertThat(args.groups).isNull();
+        assertThat(args.names).isNull();
+    }
+
+    @Test
+    void commandLineArgs_withRepositoryFilters_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("--url", "https://nexus.example.com",
+                "--repository", "my-repo",
+                "--repository", "other-repo");
+
+        assertThat(args.repositories).containsExactly("my-repo", "other-repo");
+    }
+
+    @Test
+    void commandLineArgs_withGroupFilters_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("--url", "https://nexus.example.com",
+                "--group", "com.example",
+                "--group", "org.springframework.*");
+
+        assertThat(args.groups).containsExactly("com.example", "org.springframework.*");
+    }
+
+    @Test
+    void commandLineArgs_withNameFilters_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("--url", "https://nexus.example.com",
+                "--name", "spring-*",
+                "--name", "junit");
+
+        assertThat(args.names).containsExactly("spring-*", "junit");
+    }
+
+    @Test
+    void commandLineArgs_withAllComponentFilters_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("--url", "https://nexus.example.com",
+                "--repository", "my-repo",
+                "--repository", "test-repo",
+                "--group", "com.example.*",
+                "--name", "spring-*",
+                "--name", "junit?");
+
+        assertThat(args.repositories).containsExactly("my-repo", "test-repo");
+        assertThat(args.groups).containsExactly("com.example.*");
+        assertThat(args.names).containsExactly("spring-*", "junit?");
+    }
+
+    @Test
+    void commandLineArgs_withMixedFilters_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("--url", "https://nexus.example.com",
+                "--repository", "my-repo",
+                "--created-after", "30d",
+                "--group", "com.example",
+                "--never-downloaded",
+                "--name", "spring-*");
+
+        assertThat(args.repositories).containsExactly("my-repo");
+        assertThat(args.groups).containsExactly("com.example");
+        assertThat(args.names).containsExactly("spring-*");
+        assertThat(args.createdAfter).isEqualTo("30d");
+        assertThat(args.neverDownloaded).isTrue();
     }
 }

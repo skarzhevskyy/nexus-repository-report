@@ -1,5 +1,6 @@
 package com.pyx4j.nxrm.report;
 
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import picocli.CommandLine;
@@ -81,6 +82,21 @@ public class NxReportCommandArgs implements Callable<Integer> {
             names = {"--never-downloaded"},
             description = "Only include components that have never been downloaded")
     public boolean neverDownloaded;
+
+    @CommandLine.Option(
+            names = {"--repository"},
+            description = "Filter components by repository name (supports wildcards *, ?). Can be specified multiple times (OR logic)")
+    public List<String> repositories;
+
+    @CommandLine.Option(
+            names = {"--group"},
+            description = "Filter components by group (supports wildcards *, ?). Can be specified multiple times (OR logic)")
+    public List<String> groups;
+
+    @CommandLine.Option(
+            names = {"--name"},
+            description = "Filter components by name (supports wildcards *, ?). Can be specified multiple times (OR logic)")
+    public List<String> names;
 
     public Integer call() throws Exception {
         int exitCode = 0;
