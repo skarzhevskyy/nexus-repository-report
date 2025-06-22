@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
 import com.pyx4j.nxrm.report.model.ComponentsSummary;
+import com.pyx4j.nxrm.report.model.GroupsSummary;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -147,5 +148,95 @@ class NxReportConsoleTest {
         assertThat(output).contains("150"); // Total components
         // Check that size formatting is present (should be like "1.46 MB" for total)
         assertThat(output).contains("1.46 MB");
+    }
+
+    @Test
+    void printGroupsSummary_withShortGroupNames_shouldFormatCorrectly() {
+        GroupsSummary summary = new GroupsSummary();
+        summary.addGroupStats("org.springframework", 1200, 1800000000L); // 1.8 GB
+        summary.addGroupStats("com.example", 950, 1200000000L); // 1.2 GB
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+
+        NxReportConsole.printGroupsSummary(summary, SortBy.COMPONENTS, 10, printStream);
+
+        String output = outputStream.toString();
+        assertThat(output)
+                .contains("Top Consuming Groups (by Components):")
+                .contains("org.springframework")
+                .contains("com.example")
+                .contains("1200")
+                .contains("950");
+
+        // Check that groups are sorted by components (org.springframework should come first with 1200 components)
+        int springIndex = output.indexOf("org.springframework");
+        int exampleIndex = output.indexOf("com.example");
+        assertThat(springIndex).isLessThan(exampleIndex);
+    }
+
+    @Test
+    void printGroupsSummary_sortBySize_shouldSortCorrectly() {
+        GroupsSummary summary = new GroupsSummary();
+        summary.addGroupStats("org.springframework", 800, 2000000000L); // 2.0 GB
+        summary.addGroupStats("com.example", 1200, 1000000000L); // 1.0 GB
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+
+        NxReportConsole.printGroupsSummary(summary, SortBy.SIZE, 10, printStream);
+
+        String output = outputStream.toString();
+        assertThat(output).contains("Top Consuming Groups (by Size):");
+
+        // Check that groups are sorted by size (org.springframework should come first with 2.0 GB)
+        int springIndex = output.indexOf("org.springframework");
+        int exampleIndex = output.indexOf("com.example");
+        assertThat(springIndex).isLessThan(exampleIndex);
+    }
+
+    @Test
+    void printGroupsSummary_withTopGroups_shouldLimitOutput() {
+        GroupsSummary summary = new GroupsSummary();
+        summary.addGroupStats("org.springframework", 1000, 1000000000L);
+        summary.addGroupStats("com.example", 900, 900000000L);
+        summary.addGroupStats("org.apache", 800, 800000000L);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+
+        NxReportConsole.printGroupsSummary(summary, SortBy.COMPONENTS, 2, printStream);
+
+        String output = outputStream.toString();
+        assertThat(output)
+                .contains("org.springframework")
+                .contains("com.example")
+                .doesNotContain("org.apache"); // Should be limited to top 2
+    }
+
+    @Test
+    void printGroupsSummary_withLongGroupNames_shouldAdjustFormatting() {
+        GroupsSummary summary = new GroupsSummary();
+        summary.addGroupStats("very-long-group-name-that-exceeds-thirty-characters.deeply.nested", 100, 1024000);
+        summary.addGroupStats("short", 50, 512000);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+
+        NxReportConsole.printGroupsSummary(summary, SortBy.NAME, 10, printStream);
+
+        String output = outputStream.toString();
+        String[] lines = output.split("\n");
+
+        boolean foundLongName = false;
+        for (String line : lines) {
+            if (line.contains("very-long-group-name-that-exceeds-thirty-characters.deeply.nested")) {
+                foundLongName = true;
+                // The line should be properly formatted (columns should be separated correctly)
+                assertThat(line).matches(".*very-long-group-name-that-exceeds-thirty-characters\\.deeply\\.nested\\s+\\d+\\s+.*");
+                break;
+            }
+        }
+        assertThat(foundLongName).as("Long group name should be found in output").isTrue();
     }
 }

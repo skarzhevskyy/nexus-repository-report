@@ -212,4 +212,41 @@ class CommandLineIntegrationTest {
         assertThat(args.createdAfter).isEqualTo("30d");
         assertThat(args.neverDownloaded).isTrue();
     }
+
+    @Test
+    void commandLineArgs_withTopGroupsOptions_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("top-groups", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass",
+                "--top-groups", "5", "--group-sort", "size");
+
+        assertThat(args.action).isEqualTo("top-groups");
+        assertThat(args.nexusServerUrl).isEqualTo("https://nexus.example.com");
+        assertThat(args.topGroups).isEqualTo(5);
+        assertThat(args.groupSort).isEqualTo(SortBy.SIZE);
+    }
+
+    @Test
+    void commandLineArgs_withDefaultTopGroupsOptions_shouldUseDefaults() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("top-groups", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass");
+
+        assertThat(args.action).isEqualTo("top-groups");
+        assertThat(args.topGroups).isEqualTo(10); // Default value
+        assertThat(args.groupSort).isEqualTo(SortBy.COMPONENTS); // Default value
+    }
+
+    @Test
+    void commandLineArgs_withGroupSortCaseInsensitive_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("top-groups", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass",
+                "--group-sort", "Components");
+
+        assertThat(args.groupSort).isEqualTo(SortBy.COMPONENTS);
+    }
 }

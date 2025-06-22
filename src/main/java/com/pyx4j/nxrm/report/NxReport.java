@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 import com.pyx4j.nxrm.report.model.ComponentsSummary;
+import com.pyx4j.nxrm.report.model.GroupsSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.nexus.ApiClient;
@@ -105,9 +106,59 @@ public final class NxReport {
         return resultCode.get();
     }
 
+    public static int generateGroupsReport(NxReportCommandArgs args) {
+        // Create component filter based on command line arguments
+        var componentFilter = ComponentFilter.createFilter(args);
+
+        // Create our summary object to store results
+        GroupsSummary summary = new GroupsSummary();
+
+        // Use CountDownLatch to control flow in the main thread
+        AtomicInteger resultCode = new AtomicInteger(0);
+        CountDownLatch latch = new CountDownLatch(1);
+
+        ApiClient apiClient = createApiClient(args);
+        RepositoryManagementApi repoApi = new RepositoryManagementApi(apiClient);
+
+        // Build the reactive pipeline
+        repoApi.getRepositories()
+                .doOnNext(repository -> log.debug("Found {} repository of type {}", repository.getName(), repository.getType()))
+                .filter(repository -> !repository.getType().equals(AbstractApiRepository.TypeEnum.GROUP)) // Exclude group repositories
+                .doOnNext(repository -> log.trace("Processing repository: {}", repository.getName()))
+                .flatMap(repository -> processRepositoryComponentsForGroups(apiClient, repository, summary, componentFilter))
+                .collectList()
+                .doOnSuccess(allRepos -> {
+                    // Output the groups summary with the specified sort option
+                    NxReportConsole.printGroupsSummary(summary, args.groupSort, args.topGroups);
+                    resultCode.set(0);
+                })
+                .doOnError(ex -> {
+                    log.error("Error generating groups report", ex);
+                    resultCode.set(1);
+                })
+                .doFinally(signal -> latch.countDown())
+                .subscribe();
+
+        // Wait for completion
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            log.error("Groups report generation interrupted", e);
+            Thread.currentThread().interrupt();
+            return 1;
+        }
+
+        return resultCode.get();
+    }
+
     private static Mono<Void> processRepositoryComponents(ApiClient apiClient, AbstractApiRepository repository, ComponentsSummary summary, Predicate<ComponentXO> componentFilter) {
         ComponentsApi componentsApi = new ComponentsApi(apiClient);
         return processPaginatedComponents(componentsApi, repository, null, summary, componentFilter);
+    }
+
+    private static Mono<Void> processRepositoryComponentsForGroups(ApiClient apiClient, AbstractApiRepository repository, GroupsSummary summary, Predicate<ComponentXO> componentFilter) {
+        ComponentsApi componentsApi = new ComponentsApi(apiClient);
+        return processPaginatedComponentsForGroups(componentsApi, repository, null, summary, componentFilter);
     }
 
     private static Mono<Void> processPaginatedComponents(ComponentsApi componentsApi, AbstractApiRepository repository, String continuationToken, ComponentsSummary summary, Predicate<ComponentXO> componentFilter) {
@@ -145,6 +196,43 @@ public final class NxReport {
                 });
     }
 
+    private static Mono<Void> processPaginatedComponentsForGroups(ComponentsApi componentsApi, AbstractApiRepository repository, String continuationToken, GroupsSummary summary, Predicate<ComponentXO> componentFilter) {
+        final String repoName = Objects.requireNonNull(repository.getName(), "Repository name cannot be null");
+        log.debug("Fetching components page for repository {} with token: {}", repoName, continuationToken);
+
+        return componentsApi.getComponents(repoName, continuationToken)
+                .flatMap(page -> {
+                    if (page != null && page.getItems() != null) {
+                        // Apply filter to components
+                        List<ComponentXO> filteredComponents = page.getItems().stream()
+                                .filter(componentFilter)
+                                .toList();
+
+                        // Group components by their group field and aggregate stats
+                        filteredComponents.stream()
+                                .filter(component -> component.getGroup() != null) // Only include components with a group
+                                .forEach(component -> {
+                                    String groupName = component.getGroup();
+                                    long componentSize = calculateComponentSize(component);
+                                    summary.addGroupStats(groupName, 1, componentSize);
+                                });
+
+                        log.debug("Repository {} page has {} components (filtered from {}) processed for groups",
+                                repoName, filteredComponents.size(), page.getItems().size());
+
+                        // If we have a continuation token, process next page
+                        String nextContinuationToken = page.getContinuationToken();
+                        if (nextContinuationToken != null && !nextContinuationToken.isEmpty()) {
+                            return processPaginatedComponentsForGroups(componentsApi, repository, nextContinuationToken, summary, componentFilter);
+                        }
+                    } else {
+                        log.debug("Repository {} page has no components", repoName);
+                    }
+
+                    return Mono.empty();
+                });
+    }
+
     /**
      * Calculates the total size of all components in bytes.
      *
@@ -167,6 +255,23 @@ public final class NxReport {
                     }
                     return 0;
                 })
+                .sum();
+    }
+
+    /**
+     * Calculates the total size of a single component in bytes.
+     *
+     * @param component Component to calculate size for
+     * @return Total size in bytes
+     */
+    private static long calculateComponentSize(ComponentXO component) {
+        if (component == null || component.getAssets() == null) {
+            return 0;
+        }
+
+        return component.getAssets().stream()
+                .filter(asset -> asset.getFileSize() != null)
+                .mapToLong(asset -> asset.getFileSize() != null ? asset.getFileSize() : 0)
                 .sum();
     }
 
