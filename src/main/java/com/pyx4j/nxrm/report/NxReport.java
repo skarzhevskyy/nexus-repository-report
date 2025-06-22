@@ -61,6 +61,9 @@ public final class NxReport {
     }
 
     public static int generateReport(NxReportCommandArgs args) {
+        // Create component filter based on command line arguments
+        var componentFilter = ComponentFilter.createFilter(args);
+
         // Create our summary object to store results
         ComponentsSummary summary = new ComponentsSummary();
 
@@ -68,43 +71,34 @@ public final class NxReport {
         AtomicInteger resultCode = new AtomicInteger(0);
         CountDownLatch latch = new CountDownLatch(1);
 
+        ApiClient apiClient = createApiClient(args);
+        RepositoryManagementApi repoApi = new RepositoryManagementApi(apiClient);
+
+        // Build the reactive pipeline
+        repoApi.getRepositories()
+                .doOnNext(repository -> log.debug("Found {} repository of type {}", repository.getName(), repository.getType()))
+                .filter(repository -> !repository.getType().equals(AbstractApiRepository.TypeEnum.GROUP)) // Exclude group repositories
+                .doOnNext(repository -> log.trace("Processing repository: {}", repository.getName()))
+                .flatMap(repository -> processRepositoryComponents(apiClient, repository, summary, componentFilter))
+                .collectList()
+                .doOnSuccess(allRepos -> {
+                    // Output the summary with the specified sort option
+                    NxReportConsole.printSummary(summary, args.sortBy);
+                    resultCode.set(0);
+                })
+                .doOnError(ex -> {
+                    log.error("Error generating report", ex);
+                    resultCode.set(1);
+                })
+                .doFinally(signal -> latch.countDown())
+                .subscribe();
+
+        // Wait for completion
         try {
-            // Create component filter based on command line arguments
-            var componentFilter = ComponentFilter.createFilter(args);
-
-            ApiClient apiClient = createApiClient(args);
-            RepositoryManagementApi repoApi = new RepositoryManagementApi(apiClient);
-
-            // Build the reactive pipeline
-            repoApi.getRepositories()
-                    .doOnNext(repository -> log.debug("Found {} repository of type {}", repository.getName(), repository.getType()))
-                    .filter(repository -> !repository.getType().equals(AbstractApiRepository.TypeEnum.GROUP)) // Exclude group repositories
-                    .doOnNext(repository -> log.trace("Processing repository: {}", repository.getName()))
-                    .flatMap(repository -> processRepositoryComponents(apiClient, repository, summary, componentFilter))
-                    .collectList()
-                    .doOnSuccess(allRepos -> {
-                        // Output the summary with the specified sort option
-                        NxReportConsole.printSummary(summary, args.sortBy);
-                        resultCode.set(0);
-                    })
-                    .doOnError(ex -> {
-                        log.error("Error generating report", ex);
-                        resultCode.set(1);
-                    })
-                    .doFinally(signal -> latch.countDown())
-                    .subscribe();
-
-            // Wait for completion
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                log.error("Report generation interrupted", e);
-                Thread.currentThread().interrupt();
-                return 1;
-            }
-
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid filter arguments: {}", e.getMessage());
+            latch.await();
+        } catch (InterruptedException e) {
+            log.error("Report generation interrupted", e);
+            Thread.currentThread().interrupt();
             return 1;
         }
 

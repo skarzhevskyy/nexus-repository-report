@@ -56,8 +56,8 @@ final class DateFilterParser {
                 LocalDate localDate = LocalDate.parse(trimmed, DateTimeFormatter.ISO_LOCAL_DATE);
                 return localDate.atStartOfDay(ZoneOffset.UTC).toOffsetDateTime();
             } catch (DateTimeParseException e2) {
-                throw new IllegalArgumentException("Invalid date format: '" + trimmed + 
-                    "'. Expected ISO-8601 format (e.g., '2024-06-01' or '2024-06-01T00:00:00Z') or 'Nd' format (e.g., '30d')", e2);
+                throw new IllegalArgumentException("Invalid date format: '" + trimmed +
+                        "'. Expected ISO-8601 format (e.g., '2024-06-01' or '2024-06-01T00:00:00Z') or 'Nd' format (e.g., '30d')", e2);
             }
         }
     }
@@ -65,17 +65,17 @@ final class DateFilterParser {
     /**
      * Validates that date ranges are logical (before dates should be after after dates).
      *
-     * @param before The "before" date filter
-     * @param after The "after" date filter
+     * @param before     The "before" date filter
+     * @param after      The "after" date filter
      * @param filterType The type of filter for error messages
      * @throws IllegalArgumentException if the date range is invalid
      */
     static void validateDateRange(@Nullable OffsetDateTime before, @Nullable OffsetDateTime after, @NonNull String filterType) {
         Objects.requireNonNull(filterType, "Filter type cannot be null");
-        
+
         if (before != null && after != null && before.isBefore(after)) {
-            throw new IllegalArgumentException("Invalid " + filterType + " filter: 'before' date (" + 
-                before + ") cannot be earlier than 'after' date (" + after + ")");
+            throw new IllegalArgumentException("Invalid " + filterType + " filter: 'before' date (" +
+                    before + ") cannot be earlier than 'after' date (" + after + ")");
         }
     }
 }

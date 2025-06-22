@@ -56,9 +56,9 @@ class CommandLineIntegrationTest {
         NxReportCommandArgs args = new NxReportCommandArgs();
         CommandLine cmd = new CommandLine(args);
 
-        cmd.parseArgs("--url", "https://nexus.example.com", 
-                      "--created-before", "2024-06-01T00:00:00Z", 
-                      "--created-after", "30d");
+        cmd.parseArgs("--url", "https://nexus.example.com",
+                "--created-before", "2024-06-01T00:00:00Z",
+                "--created-after", "30d");
 
         assertThat(args.createdBefore).isEqualTo("2024-06-01T00:00:00Z");
         assertThat(args.createdAfter).isEqualTo("30d");
@@ -69,9 +69,9 @@ class CommandLineIntegrationTest {
         NxReportCommandArgs args = new NxReportCommandArgs();
         CommandLine cmd = new CommandLine(args);
 
-        cmd.parseArgs("--url", "https://nexus.example.com", 
-                      "--updated-before", "2024-06-01", 
-                      "--updated-after", "7d");
+        cmd.parseArgs("--url", "https://nexus.example.com",
+                "--updated-before", "2024-06-01",
+                "--updated-after", "7d");
 
         assertThat(args.updatedBefore).isEqualTo("2024-06-01");
         assertThat(args.updatedAfter).isEqualTo("7d");
@@ -82,9 +82,9 @@ class CommandLineIntegrationTest {
         NxReportCommandArgs args = new NxReportCommandArgs();
         CommandLine cmd = new CommandLine(args);
 
-        cmd.parseArgs("--url", "https://nexus.example.com", 
-                      "--downloaded-before", "2024-12-01T12:00:00Z", 
-                      "--downloaded-after", "1d");
+        cmd.parseArgs("--url", "https://nexus.example.com",
+                "--downloaded-before", "2024-12-01T12:00:00Z",
+                "--downloaded-after", "1d");
 
         assertThat(args.downloadedBefore).isEqualTo("2024-12-01T12:00:00Z");
         assertThat(args.downloadedAfter).isEqualTo("1d");
@@ -106,12 +106,12 @@ class CommandLineIntegrationTest {
         CommandLine cmd = new CommandLine(args);
 
         cmd.parseArgs("--url", "https://nexus.example.com",
-                      "--created-before", "2024-06-01T00:00:00Z",
-                      "--created-after", "30d",
-                      "--updated-before", "2024-05-01",
-                      "--updated-after", "7d",
-                      "--downloaded-before", "2024-04-01T12:00:00Z",
-                      "--downloaded-after", "1d");
+                "--created-before", "2024-06-01T00:00:00Z",
+                "--created-after", "30d",
+                "--updated-before", "2024-05-01",
+                "--updated-after", "7d",
+                "--downloaded-before", "2024-04-01T12:00:00Z",
+                "--downloaded-after", "1d");
 
         assertThat(args.createdBefore).isEqualTo("2024-06-01T00:00:00Z");
         assertThat(args.createdAfter).isEqualTo("30d");

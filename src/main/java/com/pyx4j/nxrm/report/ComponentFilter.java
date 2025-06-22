@@ -52,82 +52,76 @@ final class ComponentFilter {
             }
 
             // A component matches if ANY of its assets match all the criteria
-            return component.getAssets().stream().anyMatch(asset -> 
-                matchesCreatedFilter(asset, createdBefore, createdAfter) &&
-                matchesUpdatedFilter(asset, updatedBefore, updatedAfter) &&
-                matchesDownloadedFilter(asset, downloadedBefore, downloadedAfter, args.neverDownloaded)
+            return component.getAssets().stream().anyMatch(asset ->
+                    matchesCreatedFilter(asset, createdBefore, createdAfter) &&
+                            matchesUpdatedFilter(asset, updatedBefore, updatedAfter) &&
+                            matchesDownloadedFilter(asset, downloadedBefore, downloadedAfter, args.neverDownloaded)
             );
         };
     }
 
-    private static boolean matchesCreatedFilter(@NonNull AssetXO asset, 
-                                              @Nullable OffsetDateTime createdBefore, 
-                                              @Nullable OffsetDateTime createdAfter) {
+    private static boolean matchesCreatedFilter(@NonNull AssetXO asset,
+                                                @Nullable OffsetDateTime createdBefore,
+                                                @Nullable OffsetDateTime createdAfter) {
         OffsetDateTime blobCreated = asset.getBlobCreated();
-        
+
         if (createdBefore != null || createdAfter != null) {
             if (blobCreated == null) {
                 return false; // Asset without creation date doesn't match time-based filters
             }
-            
+
             if (createdBefore != null && !blobCreated.isBefore(createdBefore)) {
                 return false;
             }
-            
-            if (createdAfter != null && !blobCreated.isAfter(createdAfter)) {
-                return false;
-            }
+
+            return createdAfter == null || blobCreated.isAfter(createdAfter);
         }
-        
+
         return true;
     }
 
-    private static boolean matchesUpdatedFilter(@NonNull AssetXO asset, 
-                                              @Nullable OffsetDateTime updatedBefore, 
-                                              @Nullable OffsetDateTime updatedAfter) {
+    private static boolean matchesUpdatedFilter(@NonNull AssetXO asset,
+                                                @Nullable OffsetDateTime updatedBefore,
+                                                @Nullable OffsetDateTime updatedAfter) {
         OffsetDateTime lastModified = asset.getLastModified();
-        
+
         if (updatedBefore != null || updatedAfter != null) {
             if (lastModified == null) {
                 return false; // Asset without modified date doesn't match time-based filters
             }
-            
+
             if (updatedBefore != null && !lastModified.isBefore(updatedBefore)) {
                 return false;
             }
-            
-            if (updatedAfter != null && !lastModified.isAfter(updatedAfter)) {
-                return false;
-            }
+
+            return updatedAfter == null || lastModified.isAfter(updatedAfter);
         }
-        
+
         return true;
     }
 
-    private static boolean matchesDownloadedFilter(@NonNull AssetXO asset, 
-                                                 @Nullable OffsetDateTime downloadedBefore, 
-                                                 @Nullable OffsetDateTime downloadedAfter,
-                                                 boolean neverDownloaded) {
+    private static boolean matchesDownloadedFilter(@NonNull AssetXO asset,
+                                                   @Nullable OffsetDateTime downloadedBefore,
+                                                   @Nullable OffsetDateTime downloadedAfter,
+                                                   boolean neverDownloaded) {
         OffsetDateTime lastDownloaded = asset.getLastDownloaded();
-        
+
         if (neverDownloaded) {
             return lastDownloaded == null;
         }
-        
+
         if (downloadedBefore != null || downloadedAfter != null) {
             if (lastDownloaded == null) {
                 return false; // Asset never downloaded doesn't match time-based download filters
             }
-            
+
             if (downloadedBefore != null && !lastDownloaded.isBefore(downloadedBefore)) {
                 return false;
             }
-            
-            if (downloadedAfter != null && !lastDownloaded.isAfter(downloadedAfter)) {
-                return false;
-            }
+
+            return downloadedAfter == null || lastDownloaded.isAfter(downloadedAfter);
         }
-        
+
         return true;
     }
 }
