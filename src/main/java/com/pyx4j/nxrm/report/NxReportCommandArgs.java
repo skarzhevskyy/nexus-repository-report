@@ -113,16 +113,9 @@ public class NxReportCommandArgs implements Callable<Integer> {
         int exitCode = 0;
         switch (report) {
             case "all":
-                exitCode = NxReport.generateReport(this);
-                if (exitCode == 0) {
-                    exitCode = NxReport.generateGroupsReport(this);
-                }
-                break;
             case "repositories-summary":
-                exitCode = NxReport.generateReport(this);
-                break;
             case "top-groups":
-                exitCode = NxReport.generateGroupsReport(this);
+                exitCode = NxReport.generateReport(this);
                 break;
             default:
                 CommandLine.usage(this, System.out);
