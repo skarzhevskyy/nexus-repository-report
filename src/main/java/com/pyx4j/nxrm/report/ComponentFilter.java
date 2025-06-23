@@ -58,11 +58,16 @@ final class ComponentFilter {
                 return false;
             }
 
+            // neverDownloaded: no asset was ever downloaded
+            if (args.neverDownloaded && component.getAssets().stream().anyMatch(asset -> asset.getLastDownloaded() != null)) {
+                return false;
+            }
+
             // A component matches if ANY of its assets match all the date criteria
             return component.getAssets().stream().anyMatch(asset ->
                     matchesCreatedFilter(asset, createdBefore, createdAfter) &&
                             matchesUpdatedFilter(asset, updatedBefore, updatedAfter) &&
-                            matchesDownloadedFilter(asset, downloadedBefore, downloadedAfter, args.neverDownloaded)
+                            matchesDownloadedFilter(asset, downloadedBefore, downloadedAfter)
             );
         };
     }
@@ -109,13 +114,8 @@ final class ComponentFilter {
 
     private static boolean matchesDownloadedFilter(@NonNull AssetXO asset,
                                                    @Nullable OffsetDateTime downloadedBefore,
-                                                   @Nullable OffsetDateTime downloadedAfter,
-                                                   boolean neverDownloaded) {
+                                                   @Nullable OffsetDateTime downloadedAfter) {
         OffsetDateTime lastDownloaded = asset.getLastDownloaded();
-
-        if (neverDownloaded) {
-            return lastDownloaded == null;
-        }
 
         if (downloadedBefore != null || downloadedAfter != null) {
             if (lastDownloaded == null) {

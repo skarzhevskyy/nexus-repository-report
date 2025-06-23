@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.Test;
 import org.sonatype.nexus.model.AssetXO;
 import org.sonatype.nexus.model.ComponentXO;
@@ -146,6 +147,28 @@ class ComponentFilterTest {
                 null, null, OffsetDateTime.parse("2024-06-01T00:00:00Z")
         );
         assertThat(filter.test(downloaded)).isFalse();
+
+        // Component with one asset that have one download timestamp should be filtered out
+        ComponentXO wasDownloaded = createComponentWithAsset(null, null, null);
+        addAsset(wasDownloaded, null, null, OffsetDateTime.parse("2024-06-01T00:00:00Z"));
+        assertThat(filter.test(wasDownloaded)).isFalse();
+    }
+
+    @Test
+    void createFilter_withNeverDownloadedFilter_withCreatedFilter() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        args.neverDownloaded = true;
+        args.createdAfter = "2024-06-02T00:00:00Z";
+
+        Predicate<ComponentXO> filter = ComponentFilter.createFilter(args);
+
+        // Component never downloaded and created after should pass
+        ComponentXO neverDownloadedCreatedAfter = createComponentWithAsset(OffsetDateTime.parse("2024-06-03T00:00:00Z"), null, null);
+        assertThat(filter.test(neverDownloadedCreatedAfter)).isTrue();
+
+        // Component never downloaded but created before should be filtered out
+        ComponentXO neverDownloadedCreatedBefore = createComponentWithAsset(OffsetDateTime.parse("2024-06-01T00:00:00Z"), null, null);
+        assertThat(filter.test(neverDownloadedCreatedBefore)).isFalse();
     }
 
     @Test
@@ -251,6 +274,17 @@ class ComponentFilterTest {
         asset.setLastDownloaded(lastDownloaded);
         component.setAssets(List.of(asset));
         return component;
+    }
+
+    private void addAsset(ComponentXO component, OffsetDateTime blobCreated, OffsetDateTime lastModified, OffsetDateTime lastDownloaded) {
+        AssetXO asset = new AssetXO();
+        asset.setBlobCreated(blobCreated);
+        asset.setLastModified(lastModified);
+        asset.setLastDownloaded(lastDownloaded);
+        component.setAssets(ImmutableList.<AssetXO>builder()
+                .addAll(component.getAssets() != null ? component.getAssets() : List.of())
+                .add(asset)
+                .build());
     }
 
     private ComponentXO createComponentWithFields(String repository, String group, String name) {
