@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Stores summary information about components across repositories.
  */
-public class ComponentsSummary {
+public class RepositoryComponentsSummary extends ReportSection {
 
     private final Map<String, RepositoryStats> repositoryStats;
 
@@ -16,7 +16,7 @@ public class ComponentsSummary {
 
     private long totalSizeBytes;
 
-    public ComponentsSummary() {
+    public RepositoryComponentsSummary() {
         this.repositoryStats = new HashMap<>();
         this.totalComponents = 0;
         this.totalSizeBytes = 0;

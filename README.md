@@ -19,6 +19,8 @@
 
 ## Sample Report output:
 
+### Repository Summary Report:
+
 ```
 Repository      Format    Components    Total Size
 ------------    -------   -----------   ------------
@@ -26,6 +28,18 @@ maven-releases  maven            1234         2.1 GB
 npm-repo        npm               456         800 MB
 
 TOTAL           -               1690          2.9 GB
+```
+
+### Top Consuming Groups Report:
+
+```
+Top Consuming Groups (by Components)
+
+Group                        Components    Total Size
+---------------------------  -----------   ------------
+org.springframework          1200          1.8 GB
+com.example                  950           1.2 GB
+org.apache                   800           1.0 GB
 ```
 
 ## 🛠️ Usage
@@ -49,15 +63,37 @@ NEXUS_PASSWORD=yourpassword
 ./gradlew run
 ```
 
+This will run all reports by default (both repositories summary and top consuming groups).
+
+To generate specific reports:
+```bash
+# Generate all reports (default)
+./gradlew run --args="all --url https://nexus.example.com --username admin --password yourpassword"
+
+# Generate only repositories summary
+./gradlew run --args="repositories-summary --url https://nexus.example.com --username admin --password yourpassword"
+
+# Generate only top consuming groups report
+./gradlew run --args="top-groups --url https://nexus.example.com --username admin --password yourpassword"
+```
+
+### Report Types
+
+The tool supports three report types:
+
+- **`all`** (default): Generates both repositories summary and top consuming groups reports
+- **`repositories-summary`**: Shows storage consumption per repository with component counts
+- **`top-groups`**: Shows top consuming groups (e.g., Maven groupId, npm scope) with configurable sorting and limits
+
 ### Filtering Options
 
 The tool supports filtering components based on their creation, update, and download timestamps:
 
 ```bash
-# Filter components created in the last 30 days
+# Filter components created in the last 30 days (generates all reports)
 ./gradlew run --args="--url https://nexus.example.com --created-after 30d"
 
-# Filter components created before a specific date
+# Filter components created before a specific date (generates all reports)
 ./gradlew run --args="--url https://nexus.example.com --created-before 2024-06-01"
 
 # Filter components updated within a date range
@@ -122,6 +158,25 @@ The tool also supports filtering components by repository, group, and name with 
 **Filter Logic:**
 - Multiple values for the same filter type use OR logic (e.g., multiple `--group` arguments)
 - Different filter types use AND logic (e.g., `--repository` AND `--group` AND `--name`)
+
+### Top Groups Report Options
+
+The tool can generate a report showing the top consuming groups (e.g., Maven groupId, npm scope):
+
+```bash
+# Generate only top 10 groups report sorted by components
+./gradlew run --args="top-groups --url https://nexus.example.com"
+
+# Show top 5 groups sorted by total size
+./gradlew run --args="top-groups --url https://nexus.example.com --top-groups 5 --group-sort size"
+
+# Combine with filtering options
+./gradlew run --args="top-groups --url https://nexus.example.com --repository 'maven-*' --created-after 30d"
+```
+
+**Top Groups Options:**
+- `--top-groups <N>` - Show only the top N groups (default: 10)
+- `--group-sort <components|size>` - Sort groups by number of components or total size (default: components)
 
 ### Proxy Support
 

@@ -9,9 +9,9 @@ import picocli.CommandLine;
 public class NxReportCommandArgs implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0",
-            description = "repositories-summary",
-            defaultValue = "repositories-summary")
-    public String action;
+            description = "Report type: all, repositories-summary, top-groups",
+            defaultValue = "all")
+    public String report;
 
     @CommandLine.Option(
             names = {"--url"},
@@ -43,10 +43,22 @@ public class NxReportCommandArgs implements Callable<Integer> {
     public String proxyUrl;
 
     @CommandLine.Option(
-            names = {"--sort"},
+            names = {"--repo-sort"},
             description = "Sort repositories by: ${COMPLETION-CANDIDATES} (default: components)",
             converter = SortBy.CaseInsensitiveEnumConverter.class)
-    public SortBy sortBy = SortBy.COMPONENTS;
+    public SortBy repositoriesSortBy = SortBy.COMPONENTS;
+
+    @CommandLine.Option(
+            names = {"--top-groups"},
+            description = "Show only the top N groups (default: 10)")
+    public int topGroups = 10;
+
+    @CommandLine.Option(
+            names = {"--group-sort"},
+            description = "Sort groups by: ${COMPLETION-CANDIDATES} (default: components)",
+            converter = SortBy.CaseInsensitiveEnumConverter.class)
+    public SortBy groupSort = SortBy.COMPONENTS;
+
 
     @CommandLine.Option(
             names = {"--created-before"},
@@ -98,10 +110,13 @@ public class NxReportCommandArgs implements Callable<Integer> {
             description = "Filter components by name (supports wildcards *, ?). Can be specified multiple times (OR logic)")
     public List<String> names;
 
+
     public Integer call() throws Exception {
         int exitCode = 0;
-        switch (action) {
+        switch (report) {
+            case "all":
             case "repositories-summary":
+            case "top-groups":
                 exitCode = NxReport.generateReport(this);
                 break;
             default:

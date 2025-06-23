@@ -16,12 +16,12 @@ class CommandLineIntegrationTest {
         CommandLine cmd = new CommandLine(args);
 
         // Test parsing with sort option
-        cmd.parseArgs("--url", "https://nexus.example.com", "--username", "user", "--password", "pass", "--sort", "size");
+        cmd.parseArgs("--url", "https://nexus.example.com", "--username", "user", "--password", "pass", "--repo-sort", "size");
 
         assertThat(args.nexusServerUrl).isEqualTo("https://nexus.example.com");
         assertThat(args.nexusUsername).isEqualTo("user");
         assertThat(args.nexusPassword).isEqualTo("pass");
-        assertThat(args.sortBy).isEqualTo(SortBy.SIZE);
+        assertThat(args.repositoriesSortBy).isEqualTo(SortBy.SIZE);
     }
 
     @Test
@@ -32,7 +32,7 @@ class CommandLineIntegrationTest {
         // Test parsing without sort option (should use default)
         cmd.parseArgs("--url", "https://nexus.example.com", "--username", "user", "--password", "pass");
 
-        assertThat(args.sortBy).isEqualTo(SortBy.COMPONENTS); // Default value
+        assertThat(args.repositoriesSortBy).isEqualTo(SortBy.COMPONENTS); // Default value
     }
 
     @Test
@@ -41,14 +41,14 @@ class CommandLineIntegrationTest {
         CommandLine cmd = new CommandLine(args);
 
         // Test that picocli can parse enum values correctly (case sensitive)
-        cmd.parseArgs("--url", "https://nexus.example.com", "--sort", "COMPONENTS");
-        assertThat(args.sortBy).isEqualTo(SortBy.COMPONENTS);
+        cmd.parseArgs("--url", "https://nexus.example.com", "--repo-sort", "COMPONENTS");
+        assertThat(args.repositoriesSortBy).isEqualTo(SortBy.COMPONENTS);
 
-        cmd.parseArgs("--url", "https://nexus.example.com", "--sort", "NAME");
-        assertThat(args.sortBy).isEqualTo(SortBy.NAME);
+        cmd.parseArgs("--url", "https://nexus.example.com", "--repo-sort", "NAME");
+        assertThat(args.repositoriesSortBy).isEqualTo(SortBy.NAME);
 
-        cmd.parseArgs("--url", "https://nexus.example.com", "--sort", "SIZE");
-        assertThat(args.sortBy).isEqualTo(SortBy.SIZE);
+        cmd.parseArgs("--url", "https://nexus.example.com", "--repo-sort", "SIZE");
+        assertThat(args.repositoriesSortBy).isEqualTo(SortBy.SIZE);
     }
 
     @Test
@@ -211,5 +211,72 @@ class CommandLineIntegrationTest {
         assertThat(args.names).containsExactly("spring-*");
         assertThat(args.createdAfter).isEqualTo("30d");
         assertThat(args.neverDownloaded).isTrue();
+    }
+
+    @Test
+    void commandLineArgs_withTopGroupsOptions_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("top-groups", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass",
+                "--top-groups", "5", "--group-sort", "size");
+
+        assertThat(args.report).isEqualTo("top-groups");
+        assertThat(args.nexusServerUrl).isEqualTo("https://nexus.example.com");
+        assertThat(args.topGroups).isEqualTo(5);
+        assertThat(args.groupSort).isEqualTo(SortBy.SIZE);
+    }
+
+    @Test
+    void commandLineArgs_withDefaultTopGroupsOptions_shouldUseDefaults() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("top-groups", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass");
+
+        assertThat(args.report).isEqualTo("top-groups");
+        assertThat(args.topGroups).isEqualTo(10); // Default value
+        assertThat(args.groupSort).isEqualTo(SortBy.COMPONENTS); // Default value
+    }
+
+    @Test
+    void commandLineArgs_withGroupSortCaseInsensitive_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("top-groups", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass",
+                "--group-sort", "Components");
+
+        assertThat(args.groupSort).isEqualTo(SortBy.COMPONENTS);
+    }
+
+    @Test
+    void commandLineArgs_withAllReport_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("all", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass");
+
+        assertThat(args.report).isEqualTo("all");
+    }
+
+    @Test
+    void commandLineArgs_withRepositoriesSummaryReport_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("repositories-summary", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass");
+
+        assertThat(args.report).isEqualTo("repositories-summary");
+    }
+
+    @Test
+    void commandLineArgs_withDefaultReport_shouldUseAll() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("--url", "https://nexus.example.com", "--username", "user", "--password", "pass");
+
+        assertThat(args.report).isEqualTo("all"); // Default value
     }
 }
