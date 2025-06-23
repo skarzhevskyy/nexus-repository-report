@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-import com.pyx4j.nxrm.report.model.ComponentsSummary;
 import com.pyx4j.nxrm.report.model.GroupsSummary;
+import com.pyx4j.nxrm.report.model.RepositoryComponentsSummary;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -16,7 +16,7 @@ class NxReportConsoleTest {
 
     @Test
     void printSummary_withShortRepositoryNames_shouldFormatCorrectly() {
-        ComponentsSummary summary = new ComponentsSummary();
+        RepositoryComponentsSummary summary = new RepositoryComponentsSummary();
         summary.addRepositoryStats("maven-central", "maven2", 100, 1024000);
         summary.addRepositoryStats("npm-proxy", "npm", 50, 512000);
 
@@ -40,7 +40,7 @@ class NxReportConsoleTest {
 
     @Test
     void printSummary_withLongRepositoryNames_shouldAdjustFormatting() {
-        ComponentsSummary summary = new ComponentsSummary();
+        RepositoryComponentsSummary summary = new RepositoryComponentsSummary();
         summary.addRepositoryStats("very-long-repository-name-that-exceeds-thirty-characters", "maven2", 100, 1024000);
         summary.addRepositoryStats("short", "npm", 50, 512000);
 
@@ -69,7 +69,7 @@ class NxReportConsoleTest {
 
     @Test
     void printSummary_sortByName_shouldSortAlphabetically() {
-        ComponentsSummary summary = new ComponentsSummary();
+        RepositoryComponentsSummary summary = new RepositoryComponentsSummary();
         summary.addRepositoryStats("zebra-repo", "maven2", 10, 1000);
         summary.addRepositoryStats("alpha-repo", "npm", 20, 2000);
         summary.addRepositoryStats("beta-repo", "docker", 30, 3000);
@@ -90,7 +90,7 @@ class NxReportConsoleTest {
 
     @Test
     void printSummary_sortBySize_shouldSortByDescendingSize() {
-        ComponentsSummary summary = new ComponentsSummary();
+        RepositoryComponentsSummary summary = new RepositoryComponentsSummary();
         summary.addRepositoryStats("small-repo", "maven2", 10, 1000);
         summary.addRepositoryStats("large-repo", "npm", 20, 10000);
         summary.addRepositoryStats("medium-repo", "docker", 30, 5000);
@@ -112,7 +112,7 @@ class NxReportConsoleTest {
 
     @Test
     void printSummary_sortByComponents_shouldSortByDescendingComponentCount() {
-        ComponentsSummary summary = new ComponentsSummary();
+        RepositoryComponentsSummary summary = new RepositoryComponentsSummary();
         summary.addRepositoryStats("few-components", "maven2", 10, 1000);
         summary.addRepositoryStats("many-components", "npm", 100, 2000);
         summary.addRepositoryStats("some-components", "docker", 50, 3000);
@@ -134,7 +134,7 @@ class NxReportConsoleTest {
 
     @Test
     void printSummary_shouldDisplayTotalCorrectly() {
-        ComponentsSummary summary = new ComponentsSummary();
+        RepositoryComponentsSummary summary = new RepositoryComponentsSummary();
         summary.addRepositoryStats("repo1", "maven2", 100, 1024000);
         summary.addRepositoryStats("repo2", "npm", 50, 512000);
 

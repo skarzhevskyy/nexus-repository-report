@@ -8,7 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
-import com.pyx4j.nxrm.report.model.ComponentsSummary;
+import com.pyx4j.nxrm.report.model.RepositoryComponentsSummary;
 import com.pyx4j.nxrm.report.model.GroupsSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,18 +66,11 @@ public final class NxReport {
         var componentFilter = ComponentFilter.createFilter(args);
 
         // Create our summary objects based on report type
-        ComponentsSummary componentsSummary = null;
-        GroupsSummary groupsSummary = null;
+        RepositoryComponentsSummary repositoryComponentsSummary = new RepositoryComponentsSummary();
+        GroupsSummary groupsSummary = new GroupsSummary();
 
-        boolean includeRepositories = "all".equals(args.report) || "repositories-summary".equals(args.report);
-        boolean includeGroups = "all".equals(args.report) || "top-groups".equals(args.report);
-
-        if (includeRepositories) {
-            componentsSummary = new ComponentsSummary();
-        }
-        if (includeGroups) {
-            groupsSummary = new GroupsSummary();
-        }
+        repositoryComponentsSummary.setEnabled("all".equals(args.report) || "repositories-summary".equals(args.report));
+        groupsSummary.setEnabled("all".equals(args.report) || "top-groups".equals(args.report));
 
         // Use CountDownLatch to control flow in the main thread
         AtomicInteger resultCode = new AtomicInteger(0);
@@ -86,26 +79,23 @@ public final class NxReport {
         ApiClient apiClient = createApiClient(args);
         RepositoryManagementApi repoApi = new RepositoryManagementApi(apiClient);
 
-        final ComponentsSummary finalComponentsSummary = componentsSummary;
-        final GroupsSummary finalGroupsSummary = groupsSummary;
-
         // Build the reactive pipeline
         repoApi.getRepositories()
                 .doOnNext(repository -> log.debug("Found {} repository of type {}", repository.getName(), repository.getType()))
                 .filter(repository -> !repository.getType().equals(AbstractApiRepository.TypeEnum.GROUP)) // Exclude group repositories
                 .doOnNext(repository -> log.trace("Processing repository: {}", repository.getName()))
-                .flatMap(repository -> processRepositoryComponents(apiClient, repository, finalComponentsSummary, finalGroupsSummary, componentFilter))
+                .flatMap(repository -> processRepositoryComponents(apiClient, repository, repositoryComponentsSummary, groupsSummary, componentFilter))
                 .collectList()
                 .doOnSuccess(allRepos -> {
                     // Output the summaries based on report type
-                    if (includeRepositories && finalComponentsSummary != null) {
-                        NxReportConsole.printSummary(finalComponentsSummary, args.sortBy);
+                    if (repositoryComponentsSummary.isEnabled()) {
+                        NxReportConsole.printSummary(repositoryComponentsSummary, args.repositoriesSortBy);
                     }
-                    if (includeGroups && finalGroupsSummary != null) {
-                        if (includeRepositories) {
+                    if (groupsSummary.isEnabled()) {
+                        if (repositoryComponentsSummary.isEnabled()) {
                             System.out.println(); // Add blank line between reports
                         }
-                        NxReportConsole.printGroupsSummary(finalGroupsSummary, args.groupSort, args.topGroups);
+                        NxReportConsole.printGroupsSummary(groupsSummary, args.groupSort, args.topGroups);
                     }
                     resultCode.set(0);
                 })
@@ -130,14 +120,14 @@ public final class NxReport {
 
 
 
-    private static Mono<Void> processRepositoryComponents(ApiClient apiClient, AbstractApiRepository repository, ComponentsSummary componentsSummary, GroupsSummary groupsSummary, Predicate<ComponentXO> componentFilter) {
+    private static Mono<Void> processRepositoryComponents(ApiClient apiClient, AbstractApiRepository repository, RepositoryComponentsSummary repositoryComponentsSummary, GroupsSummary groupsSummary, Predicate<ComponentXO> componentFilter) {
         ComponentsApi componentsApi = new ComponentsApi(apiClient);
-        return processPaginatedComponents(componentsApi, repository, null, componentsSummary, groupsSummary, componentFilter);
+        return processPaginatedComponents(componentsApi, repository, null, repositoryComponentsSummary, groupsSummary, componentFilter);
     }
 
 
 
-    private static Mono<Void> processPaginatedComponents(ComponentsApi componentsApi, AbstractApiRepository repository, String continuationToken, ComponentsSummary componentsSummary, GroupsSummary groupsSummary, Predicate<ComponentXO> componentFilter) {
+    private static Mono<Void> processPaginatedComponents(ComponentsApi componentsApi, AbstractApiRepository repository, String continuationToken, RepositoryComponentsSummary repositoryComponentsSummary, GroupsSummary groupsSummary, Predicate<ComponentXO> componentFilter) {
         final String repoName = Objects.requireNonNull(repository.getName(), "Repository name cannot be null");
         log.debug("Fetching components page for repository {} with token: {}", repoName, continuationToken);
 
@@ -157,12 +147,12 @@ public final class NxReport {
 
                         if (componentCount > 0) {
                             // Update repository summary if provided
-                            if (componentsSummary != null) {
-                                componentsSummary.addRepositoryStats(repoName, repository.getFormat(), componentCount, sizeBytes);
+                            if (repositoryComponentsSummary.isEnabled()) {
+                                repositoryComponentsSummary.addRepositoryStats(repoName, repository.getFormat(), componentCount, sizeBytes);
                             }
 
                             // Update groups summary if provided
-                            if (groupsSummary != null) {
+                            if (groupsSummary.isEnabled()) {
                                 filteredComponents.stream()
                                         .filter(component -> component.getGroup() != null) // Only include components with a group
                                         .forEach(component -> {
@@ -176,7 +166,7 @@ public final class NxReport {
                         // If we have a continuation token, process next page
                         String nextContinuationToken = page.getContinuationToken();
                         if (nextContinuationToken != null && !nextContinuationToken.isEmpty()) {
-                            return processPaginatedComponents(componentsApi, repository, nextContinuationToken, componentsSummary, groupsSummary, componentFilter);
+                            return processPaginatedComponents(componentsApi, repository, nextContinuationToken, repositoryComponentsSummary, groupsSummary, componentFilter);
                         }
                     } else {
                         log.debug("Repository {} page has no components", repoName);
@@ -200,16 +190,7 @@ public final class NxReport {
         }
 
         return components.stream()
-                .mapToLong(component -> {
-                    // If a component has a size property, use it - otherwise default to 0
-                    if (component.getAssets() != null) {
-                        return component.getAssets().stream()
-                                .filter(asset -> asset.getFileSize() != null)
-                                .mapToLong(asset -> asset.getFileSize() != null ? asset.getFileSize() : 0)
-                                .sum();
-                    }
-                    return 0;
-                })
+                .mapToLong(NxReport::calculateComponentSize)
                 .sum();
     }
 

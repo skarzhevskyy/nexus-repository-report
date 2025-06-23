@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Stores summary information about components grouped by their group field.
  */
-public class GroupsSummary {
+public class GroupsSummary extends ReportSection {
 
     private final Map<String, GroupStats> groupStats;
 

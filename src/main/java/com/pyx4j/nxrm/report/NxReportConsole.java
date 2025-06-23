@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.pyx4j.nxrm.report.model.ComponentsSummary;
+import com.pyx4j.nxrm.report.model.RepositoryComponentsSummary;
 import com.pyx4j.nxrm.report.model.RepositoryStats;
 import com.pyx4j.nxrm.report.model.GroupsSummary;
 import com.pyx4j.nxrm.report.model.GroupStats;
@@ -19,7 +19,7 @@ class NxReportConsole {
      * @param summary The summary to print
      * @param sortBy  The sorting option to use
      */
-    static void printSummary(ComponentsSummary summary, SortBy sortBy) {
+    static void printSummary(RepositoryComponentsSummary summary, SortBy sortBy) {
         printSummary(summary, sortBy, System.out);
     }
 
@@ -30,7 +30,7 @@ class NxReportConsole {
      * @param sortBy  The sorting option to use
      * @param out     The PrintStream to write to
      */
-    static void printSummary(ComponentsSummary summary, SortBy sortBy, PrintStream out) {
+    static void printSummary(RepositoryComponentsSummary summary, SortBy sortBy, PrintStream out) {
         out.println("\nRepository Report Summary:");
         out.println("======================================================================");
 
