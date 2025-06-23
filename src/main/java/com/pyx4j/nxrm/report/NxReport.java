@@ -83,6 +83,7 @@ public final class NxReport {
         repoApi.getRepositories()
                 .doOnNext(repository -> log.debug("Found {} repository of type {}", repository.getName(), repository.getType()))
                 .filter(repository -> !repository.getType().equals(AbstractApiRepository.TypeEnum.GROUP)) // Exclude group repositories
+                .filter(repository -> ComponentFilter.matchesRepositoryFilter(repository.getName(), args.repositories)) // Filter repositories early
                 .doOnNext(repository -> log.trace("Processing repository: {}", repository.getName()))
                 .flatMap(repository -> processRepositoryComponents(apiClient, repository, repositoryComponentsSummary, groupsSummary, componentFilter))
                 .collectList()

@@ -133,6 +133,22 @@ final class ComponentFilter {
     }
 
     /**
+     * Checks if a repository name matches the provided repository patterns.
+     *
+     * @param repositoryName The repository name to test
+     * @param repositories   List of repository patterns (OR logic)
+     * @return true if the repository name matches any of the patterns, or if no patterns are provided
+     */
+    static boolean matchesRepositoryFilter(@Nullable String repositoryName, @Nullable List<String> repositories) {
+        // If no repository filter is specified, all repositories match
+        if (repositories == null || repositories.isEmpty()) {
+            return true;
+        }
+        
+        return matchesAnyPattern(repositoryName, repositories);
+    }
+
+    /**
      * Checks if a component matches the provided component-level filters.
      *
      * @param component    The component to test
