@@ -10,6 +10,8 @@ import com.pyx4j.nxrm.report.model.RepositoryComponentsSummary;
 import com.pyx4j.nxrm.report.model.RepositoryStats;
 import com.pyx4j.nxrm.report.model.GroupsSummary;
 import com.pyx4j.nxrm.report.model.GroupStats;
+import com.pyx4j.nxrm.report.model.AgeSummary;
+import com.pyx4j.nxrm.report.model.AgeBucket;
 
 class NxReportConsole {
 
@@ -193,6 +195,63 @@ class NxReportConsole {
         return groupStats.entrySet().stream()
                 .sorted(comparator)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Prints the age summary to the console.
+     *
+     * @param summary The age summary to print
+     */
+    static void printAgeSummary(AgeSummary summary) {
+        printAgeSummary(summary, System.out);
+    }
+
+    /**
+     * Prints the age summary to the specified PrintStream.
+     *
+     * @param summary The age summary to print
+     * @param out     The PrintStream to write to
+     */
+    static void printAgeSummary(AgeSummary summary, PrintStream out) {
+        out.println("\nComponent Age Distribution:");
+        out.println("======================================================================");
+
+        // Calculate the maximum age range length for dynamic formatting
+        int maxRangeLength = Math.max(15, // minimum width for "Age Range"
+                summary.getAgeBuckets().stream()
+                        .mapToInt(bucket -> bucket.getRangeDescription().length())
+                        .max()
+                        .orElse(15) + 2); // add some padding
+
+        // Create format strings based on calculated width
+        String headerFormat = "%-" + maxRangeLength + "s %-12s %-15s%n";
+        String separatorFormat = "%-" + maxRangeLength + "s %-12s %-15s%n";
+        String dataFormat = "%-" + maxRangeLength + "s %12d %15s%n";
+        String totalFormat = "%-" + maxRangeLength + "s %12d %15s%n";
+
+        // Print header
+        out.printf(headerFormat, "Age Range", "Components", "Total Size");
+        out.printf(separatorFormat,
+                "-".repeat(maxRangeLength),
+                "------------",
+                "---------------");
+
+        // Print age bucket data
+        for (AgeBucket bucket : summary.getAgeBuckets()) {
+            out.printf(dataFormat,
+                    bucket.getRangeDescription(),
+                    bucket.getComponentCount(),
+                    formatSize(bucket.getSizeBytes()));
+        }
+
+        // Print separator line before total
+        out.println();
+
+        // Print total
+        out.printf(totalFormat,
+                "TOTAL",
+                summary.getTotalComponents(),
+                formatSize(summary.getTotalSizeBytes()));
     }
 
     /**
