@@ -513,4 +513,66 @@ class ComponentFilterTest {
         ComponentXO regexMatch = createComponentWithFields("my-repo", "com.example", "appXtest");
         assertThat(filter.test(regexMatch)).isFalse();
     }
+
+    @Test
+    void matchesRepositoryFilter_withNullRepositoryName_shouldReturnFalse() {
+        List<String> repositories = List.of("my-repo");
+        
+        assertThat(ComponentFilter.matchesRepositoryFilter(null, repositories)).isFalse();
+    }
+    
+    @Test
+    void matchesRepositoryFilter_withEmptyRepositoryName_shouldReturnFalse() {
+        List<String> repositories = List.of("my-repo");
+        
+        assertThat(ComponentFilter.matchesRepositoryFilter("", repositories)).isFalse();
+    }
+    
+    @Test
+    void matchesRepositoryFilter_withNullOrEmptyRepositories_shouldReturnTrue() {
+        assertThat(ComponentFilter.matchesRepositoryFilter("any-repo", null)).isTrue();
+        assertThat(ComponentFilter.matchesRepositoryFilter("any-repo", List.of())).isTrue();
+    }
+    
+    @Test
+    void matchesRepositoryFilter_withMatchingRepository_shouldReturnTrue() {
+        List<String> repositories = List.of("my-repo");
+        
+        assertThat(ComponentFilter.matchesRepositoryFilter("my-repo", repositories)).isTrue();
+    }
+    
+    @Test
+    void matchesRepositoryFilter_withNonMatchingRepository_shouldReturnFalse() {
+        List<String> repositories = List.of("my-repo");
+        
+        assertThat(ComponentFilter.matchesRepositoryFilter("other-repo", repositories)).isFalse();
+    }
+    
+    @Test
+    void matchesRepositoryFilter_withMultipleRepositories_shouldUseOrLogic() {
+        List<String> repositories = List.of("repo1", "repo2");
+        
+        assertThat(ComponentFilter.matchesRepositoryFilter("repo1", repositories)).isTrue();
+        assertThat(ComponentFilter.matchesRepositoryFilter("repo2", repositories)).isTrue();
+        assertThat(ComponentFilter.matchesRepositoryFilter("repo3", repositories)).isFalse();
+    }
+    
+    @Test
+    void matchesRepositoryFilter_withWildcardPattern_shouldFilterCorrectly() {
+        List<String> repositories = List.of("my-*");
+        
+        assertThat(ComponentFilter.matchesRepositoryFilter("my-repo", repositories)).isTrue();
+        assertThat(ComponentFilter.matchesRepositoryFilter("my-other-repo", repositories)).isTrue();
+        assertThat(ComponentFilter.matchesRepositoryFilter("other-repo", repositories)).isFalse();
+    }
+    
+    @Test
+    void matchesRepositoryFilter_withQuestionMarkWildcard_shouldFilterCorrectly() {
+        List<String> repositories = List.of("app?");
+        
+        assertThat(ComponentFilter.matchesRepositoryFilter("app1", repositories)).isTrue();
+        assertThat(ComponentFilter.matchesRepositoryFilter("appX", repositories)).isTrue();
+        assertThat(ComponentFilter.matchesRepositoryFilter("app", repositories)).isFalse();
+        assertThat(ComponentFilter.matchesRepositoryFilter("app12", repositories)).isFalse();
+    }
 }
