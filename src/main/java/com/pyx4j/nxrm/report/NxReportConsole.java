@@ -219,7 +219,7 @@ class NxReportConsole {
         // Calculate the maximum age range length for dynamic formatting
         int maxRangeLength = Math.max(15, // minimum width for "Age Range"
                 summary.getAgeBuckets().stream()
-                        .mapToInt(bucket -> bucket.getRangeDescription().length())
+                        .mapToInt(bucket -> formatAgeRange(bucket, summary.getAgeBuckets()).length())
                         .max()
                         .orElse(15) + 2); // add some padding
 
@@ -239,7 +239,7 @@ class NxReportConsole {
         // Print age bucket data
         for (AgeBucket bucket : summary.getAgeBuckets()) {
             out.printf(dataFormat,
-                    bucket.getRangeDescription(),
+                    formatAgeRange(bucket, summary.getAgeBuckets()),
                     bucket.getComponentCount(),
                     formatSize(bucket.getSizeBytes()));
         }
@@ -252,6 +252,58 @@ class NxReportConsole {
                 "TOTAL",
                 summary.getTotalComponents(),
                 formatSize(summary.getTotalSizeBytes()));
+    }
+
+    /**
+     * Formats an age bucket range description with proper spacing and alignment.
+     * Examples:
+     * "0-7" becomes "   0  -   7 days"
+     * "8-30" becomes "   8  -  30 days" 
+     * "31-90" becomes " 31 - 90 days"
+     * ">365" becomes ">365 days"
+     *
+     * @param bucket The age bucket to format
+     * @param allBuckets All buckets to calculate consistent spacing
+     * @return Formatted age range description
+     */
+    private static String formatAgeRange(AgeBucket bucket, List<AgeBucket> allBuckets) {
+        String originalRange = bucket.getOriginalRange();
+        
+        // Handle greater-than ranges (no special formatting)
+        if (originalRange.startsWith(">")) {
+            return originalRange + " days";
+        }
+        
+        // Calculate maximum widths needed for consistent alignment
+        int maxStartWidth = 0;
+        int maxEndWidth = 0;
+        
+        for (AgeBucket b : allBuckets) {
+            String range = b.getOriginalRange();
+            if (!range.startsWith(">") && range.contains("-")) {
+                String[] parts = range.split("-");
+                if (parts.length == 2) {
+                    maxStartWidth = Math.max(maxStartWidth, parts[0].length());
+                    maxEndWidth = Math.max(maxEndWidth, parts[1].length());
+                }
+            }
+        }
+        
+        // Format the current bucket if it's a range
+        if (originalRange.contains("-")) {
+            String[] parts = originalRange.split("-");
+            if (parts.length == 2) {
+                String startNum = parts[0];
+                String endNum = parts[1];
+                
+                // Right-align start number, left-align end number
+                return String.format("%" + maxStartWidth + "s - %-" + maxEndWidth + "s days", 
+                    startNum, endNum);
+            }
+        }
+        
+        // Fallback to original format
+        return originalRange + " days";
     }
 
     /**

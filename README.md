@@ -42,6 +42,22 @@ com.example                  950           1.2 GB
 org.apache                   800           1.0 GB
 ```
 
+### Component Age Distribution Report:
+
+```
+Component Age Distribution
+
+Age Range         Components    Total Size
+---------------   ----------    ----------
+   0  -   7 days                120         200 MB
+   8  -  30 days               340         1.1 GB
+  31  -  90 days              500         2.0 GB
+  91  - 365 days             800         3.5 GB
+>365 days                   300         1.2 GB
+
+TOTAL                      2060         8.0 GB
+```
+
 ## 🛠️ Usage
 
 1. Clone the repository:
@@ -75,15 +91,22 @@ To generate specific reports:
 
 # Generate only top consuming groups report
 ./gradlew run --args="top-groups --url https://nexus.example.com --username admin --password yourpassword"
+
+# Generate age distribution report
+./gradlew run --args="age-report --url https://nexus.example.com --username admin --password yourpassword"
+
+# Generate age distribution report with custom age buckets
+./gradlew run --args="age-report --url https://nexus.example.com --username admin --password yourpassword --age-buckets '0-14,15-30,31-180,>180'"
 ```
 
 ### Report Types
 
-The tool supports three report types:
+The tool supports four report types:
 
 - **`all`** (default): Generates both repositories summary and top consuming groups reports
 - **`repositories-summary`**: Shows storage consumption per repository with component counts
 - **`top-groups`**: Shows top consuming groups (e.g., Maven groupId, npm scope) with configurable sorting and limits
+- **`age-report`**: Shows component age distribution categorized by time since creation
 
 ### Filtering Options
 
@@ -177,6 +200,31 @@ The tool can generate a report showing the top consuming groups (e.g., Maven gro
 **Top Groups Options:**
 - `--top-groups <N>` - Show only the top N groups (default: 10)
 - `--group-sort <components|size>` - Sort groups by number of components or total size (default: components)
+
+### Age Report Options
+
+The tool can generate a report showing component age distribution categorized by time since creation:
+
+```bash
+# Generate age distribution report with default buckets (0-7, 8-30, 31-90, 91-365, >365 days)
+./gradlew run --args="age-report --url https://nexus.example.com"
+
+# Generate age distribution report with custom age buckets
+./gradlew run --args="age-report --url https://nexus.example.com --age-buckets '0-14,15-30,31-180,>180'"
+
+# Combine with filtering options
+./gradlew run --args="age-report --url https://nexus.example.com --repository 'maven-*' --created-after 30d"
+```
+
+**Age Report Options:**
+- `--age-buckets <buckets>` - Define custom age ranges (default: "0-7,8-30,31-90,91-365,>365")
+  - Format: Comma-separated list of ranges like "0-7", "8-30", ">365"
+  - Examples: "0-14,15-30,31-180,>180" or "0-7,8-30,31-90,91-365,>365"
+
+**Age Calculation:**
+- Component age is calculated from the earliest asset creation date (`blobCreated`)
+- Age is measured in days from current UTC time
+- Components are categorized into the first matching age bucket
 
 ### Proxy Support
 
