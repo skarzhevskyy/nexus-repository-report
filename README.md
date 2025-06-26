@@ -227,6 +227,28 @@ The tool can generate a report showing component age distribution categorized by
 - Age is measured in days from current UTC time
 - Components are categorized into the first matching age bucket
 
+### File Export Options
+
+The tool can export reports and filtered component lists to JSON or CSV files.
+
+**Report File Generation:**
+
+- `--output-file <path>` - Save the report to a file. The format is determined by the file extension (`.json` or `.csv`).
+
+```bash
+# Save the top-groups report to a CSV file
+./gradlew run --args="top-groups --output-file top_groups.csv"
+```
+
+**Filtered Component Export:**
+
+- `--output-component <path>` - Save the list of filtered components to a file. The format is determined by the file extension (`.json` or `.csv`). This option must be used with a report-generating command.
+
+```bash
+# Run the age-report and export the underlying component data to a JSON file
+./gradlew run --args="age-report --created-after 30d --output-component new_components.json"
+```
+
 ### Proxy Support
 
 The tool supports proxy configuration through multiple methods:
@@ -272,6 +294,15 @@ docker run --rm \
   -e NEXUS_TOKEN=your-nexus-token \
   -e HTTPS_PROXY=http://proxy.company.com:8080 \
   ghcr.io/skarzhevskyy/nexus-repository-report:latest
+
+# Exporting components to a file on the host system
+docker run --rm \
+  -v "$(pwd)/reports:/app/reports" \
+  ghcr.io/skarzhevskyy/nexus-repository-report:latest \
+  --url https://nexus.example.com \
+  --username admin \
+  --password yourpassword \
+  --output-component /app/reports/components.csv
 ```
 
 ### Available Environment Variables

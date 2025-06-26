@@ -115,6 +115,16 @@ public class NxReportCommandArgs implements Callable<Integer> {
             description = "Filter components by name (supports wildcards *, ?). Can be specified multiple times (OR logic)")
     public List<String> names;
 
+    @CommandLine.Option(
+            names = {"--output-file"},
+            description = "Save report to a file (e.g., report.json, report.csv)")
+    public String outputFile;
+
+    @CommandLine.Option(
+            names = {"--output-component"},
+            description = "Save all filtered components to a file (e.g., components.json, components.csv)")
+    public String outputComponentFile;
+
 
     public Integer call() throws Exception {
         int exitCode = 0;
