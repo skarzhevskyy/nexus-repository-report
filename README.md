@@ -37,9 +37,9 @@ Top Consuming Groups (by Components)
 
 Group                        Components    Total Size
 ---------------------------  -----------   ------------
-org.springframework          1200          1.8 GB
-com.example                  950           1.2 GB
-org.apache                   800           1.0 GB
+org.springframework          1100          1.8 GB
+com.example                   150          6.2 MB
+org.apache                      8          7.0 MB
 ```
 
 ### Component Age Distribution Report:
@@ -49,13 +49,13 @@ Component Age Distribution
 
 Age Range         Components    Total Size
 ---------------   ----------    ----------
-   0  -   7 days         120         200 MB
-   8  -  30 days         340         1.1 GB
-  31  -  90 days         500         2.0 GB
-  91  - 365 days         800         3.5 GB
->365 days                300         1.2 GB
+   0  -   7 days         120         234 MB
+   8  -  30 days         270         421 MB
+  31  -  90 days         471         578 MB
+  91  - 365 days         760         789 MB
+>365 days                 69         878 MB
 
-TOTAL                   2060         8.0 GB
+TOTAL                   1690         2.9 GB
 ```
 
 ## 🛠️ Usage
