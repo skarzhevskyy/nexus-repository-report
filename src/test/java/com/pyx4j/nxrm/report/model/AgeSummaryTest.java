@@ -45,7 +45,7 @@ class AgeSummaryTest {
 
     @Test
     void addComponent_withNullComponent_shouldThrowException() {
-        AgeSummary summary = new AgeSummary(Arrays.asList("0-7"));
+        AgeSummary summary = new AgeSummary(List.of("0-7"));
 
         assertThatThrownBy(() -> summary.addComponent(null, 1024))
                 .isInstanceOf(NullPointerException.class)
@@ -105,15 +105,15 @@ class AgeSummaryTest {
 
         // Create component with multiple assets, earliest is 3 days ago
         ComponentXO component = new ComponentXO();
-        
+
         AssetXO asset1 = new AssetXO();
         asset1.setBlobCreated(OffsetDateTime.now(ZoneOffset.UTC).minusDays(10)); // 10 days ago
         asset1.setFileSize(512L);
-        
+
         AssetXO asset2 = new AssetXO();
         asset2.setBlobCreated(OffsetDateTime.now(ZoneOffset.UTC).minusDays(3)); // 3 days ago (earliest)
         asset2.setFileSize(512L);
-        
+
         component.setAssets(Arrays.asList(asset1, asset2));
 
         summary.addComponent(component, 1024);
@@ -163,7 +163,7 @@ class AgeSummaryTest {
         AssetXO asset = new AssetXO();
         asset.setBlobCreated(null); // No creation date
         asset.setFileSize(1024L);
-        component.setAssets(Arrays.asList(asset));
+        component.setAssets(List.of(asset));
 
         summary.addComponent(component, 1024);
 
@@ -211,7 +211,7 @@ class AgeSummaryTest {
         AgeSummary summary = new AgeSummary(ranges);
 
         List<AgeBucket> buckets = summary.getAgeBuckets();
-        
+
         assertThatThrownBy(() -> buckets.add(new AgeBucket("31-90")))
                 .isInstanceOf(UnsupportedOperationException.class);
     }
@@ -221,7 +221,7 @@ class AgeSummaryTest {
         AssetXO asset = new AssetXO();
         asset.setBlobCreated(blobCreated);
         asset.setFileSize(1024L);
-        component.setAssets(Arrays.asList(asset));
+        component.setAssets(List.of(asset));
         return component;
     }
 }

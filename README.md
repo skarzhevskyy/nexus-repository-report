@@ -49,13 +49,13 @@ Component Age Distribution
 
 Age Range         Components    Total Size
 ---------------   ----------    ----------
-   0  -   7 days                120         200 MB
-   8  -  30 days               340         1.1 GB
-  31  -  90 days              500         2.0 GB
-  91  - 365 days             800         3.5 GB
->365 days                   300         1.2 GB
+   0  -   7 days         120         200 MB
+   8  -  30 days         340         1.1 GB
+  31  -  90 days         500         2.0 GB
+  91  - 365 days         800         3.5 GB
+>365 days                300         1.2 GB
 
-TOTAL                      2060         8.0 GB
+TOTAL                   2060         8.0 GB
 ```
 
 ## 🛠️ Usage

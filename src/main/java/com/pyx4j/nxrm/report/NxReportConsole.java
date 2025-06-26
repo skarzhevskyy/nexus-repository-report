@@ -257,10 +257,10 @@ class NxReportConsole {
     /**
      * Formats an age bucket range description with proper spacing and alignment.
      * Examples:
-     * "0-7" becomes "   0  -   7 days"
-     * "8-30" becomes "   8  -  30 days" 
-     * "31-90" becomes " 31 - 90 days"
-     * ">365" becomes ">365 days"
+     * "0-7" becomes   " 0 - 7   days"
+     * "8-30" becomes  " 8 - 30  days"
+     * "31-90" becomes "31 - 90  days"
+     * ">365" becomes  ">365 days"
      *
      * @param bucket The age bucket to format
      * @param allBuckets All buckets to calculate consistent spacing
