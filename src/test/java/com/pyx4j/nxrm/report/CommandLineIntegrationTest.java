@@ -279,4 +279,52 @@ class CommandLineIntegrationTest {
 
         assertThat(args.report).isEqualTo("all"); // Default value
     }
+
+    @Test
+    void commandLineArgs_withAgeReportType_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("age-report", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass");
+
+        assertThat(args.report).isEqualTo("age-report");
+        assertThat(args.nexusServerUrl).isEqualTo("https://nexus.example.com");
+        assertThat(args.nexusUsername).isEqualTo("user");
+        assertThat(args.nexusPassword).isEqualTo("pass");
+    }
+
+    @Test
+    void commandLineArgs_withDefaultAgeBuckets_shouldUseDefaults() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("age-report", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass");
+
+        assertThat(args.ageBuckets).isEqualTo("0-7,8-30,31-90,91-365,>365");
+    }
+
+    @Test
+    void commandLineArgs_withCustomAgeBuckets_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("age-report", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass",
+                "--age-buckets", "0-14,15-30,31-180,>180");
+
+        assertThat(args.ageBuckets).isEqualTo("0-14,15-30,31-180,>180");
+    }
+
+    @Test
+    void commandLineArgs_withAgeReportAndFilters_shouldParseCorrectly() {
+        NxReportCommandArgs args = new NxReportCommandArgs();
+        CommandLine cmd = new CommandLine(args);
+
+        cmd.parseArgs("age-report", "--url", "https://nexus.example.com", "--username", "user", "--password", "pass",
+                "--repository", "maven-*", "--created-after", "30d", "--age-buckets", "0-7,8-30,>30");
+
+        assertThat(args.report).isEqualTo("age-report");
+        assertThat(args.repositories).contains("maven-*");
+        assertThat(args.createdAfter).isEqualTo("30d");
+        assertThat(args.ageBuckets).isEqualTo("0-7,8-30,>30");
+    }
 }

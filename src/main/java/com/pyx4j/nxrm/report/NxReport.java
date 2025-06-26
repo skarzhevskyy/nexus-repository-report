@@ -1,6 +1,7 @@
 package com.pyx4j.nxrm.report;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
@@ -8,8 +9,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
-import com.pyx4j.nxrm.report.model.RepositoryComponentsSummary;
+import com.pyx4j.nxrm.report.model.AgeSummary;
 import com.pyx4j.nxrm.report.model.GroupsSummary;
+import com.pyx4j.nxrm.report.model.RepositoryComponentsSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.nexus.ApiClient;
@@ -69,8 +71,13 @@ public final class NxReport {
         RepositoryComponentsSummary repositoryComponentsSummary = new RepositoryComponentsSummary();
         GroupsSummary groupsSummary = new GroupsSummary();
 
+        // Parse age buckets and create AgeSummary
+        List<String> ageBucketRanges = Arrays.asList(args.ageBuckets.split(","));
+        AgeSummary ageSummary = new AgeSummary(ageBucketRanges);
+
         repositoryComponentsSummary.setEnabled("all".equals(args.report) || "repositories-summary".equals(args.report));
         groupsSummary.setEnabled("all".equals(args.report) || "top-groups".equals(args.report));
+        ageSummary.setEnabled("all".equals(args.report) || "age-report".equals(args.report));
 
         // Use CountDownLatch to control flow in the main thread
         AtomicInteger resultCode = new AtomicInteger(0);
@@ -85,18 +92,28 @@ public final class NxReport {
                 .filter(repository -> !repository.getType().equals(AbstractApiRepository.TypeEnum.GROUP)) // Exclude group repositories
                 .filter(repository -> ComponentFilter.matchesRepositoryFilter(repository.getName(), args.repositories)) // Filter repositories early
                 .doOnNext(repository -> log.trace("Processing repository: {}", repository.getName()))
-                .flatMap(repository -> processRepositoryComponents(apiClient, repository, repositoryComponentsSummary, groupsSummary, componentFilter))
+                .flatMap(repository -> processRepositoryComponents(apiClient, repository, repositoryComponentsSummary, groupsSummary, ageSummary, componentFilter))
                 .collectList()
                 .doOnSuccess(allRepos -> {
                     // Output the summaries based on report type
+                    boolean hasPreviousOutput = false;
+
                     if (repositoryComponentsSummary.isEnabled()) {
                         NxReportConsole.printSummary(repositoryComponentsSummary, args.repositoriesSortBy);
+                        hasPreviousOutput = true;
                     }
                     if (groupsSummary.isEnabled()) {
-                        if (repositoryComponentsSummary.isEnabled()) {
+                        if (hasPreviousOutput) {
                             System.out.println(); // Add blank line between reports
                         }
                         NxReportConsole.printGroupsSummary(groupsSummary, args.groupSort, args.topGroups);
+                        hasPreviousOutput = true;
+                    }
+                    if (ageSummary.isEnabled()) {
+                        if (hasPreviousOutput) {
+                            System.out.println(); // Add blank line between reports
+                        }
+                        NxReportConsole.printAgeSummary(ageSummary);
                     }
                     resultCode.set(0);
                 })
@@ -120,15 +137,13 @@ public final class NxReport {
     }
 
 
-
-    private static Mono<Void> processRepositoryComponents(ApiClient apiClient, AbstractApiRepository repository, RepositoryComponentsSummary repositoryComponentsSummary, GroupsSummary groupsSummary, Predicate<ComponentXO> componentFilter) {
+    private static Mono<Void> processRepositoryComponents(ApiClient apiClient, AbstractApiRepository repository, RepositoryComponentsSummary repositoryComponentsSummary, GroupsSummary groupsSummary, AgeSummary ageSummary, Predicate<ComponentXO> componentFilter) {
         ComponentsApi componentsApi = new ComponentsApi(apiClient);
-        return processPaginatedComponents(componentsApi, repository, null, repositoryComponentsSummary, groupsSummary, componentFilter);
+        return processPaginatedComponents(componentsApi, repository, null, repositoryComponentsSummary, groupsSummary, ageSummary, componentFilter);
     }
 
 
-
-    private static Mono<Void> processPaginatedComponents(ComponentsApi componentsApi, AbstractApiRepository repository, String continuationToken, RepositoryComponentsSummary repositoryComponentsSummary, GroupsSummary groupsSummary, Predicate<ComponentXO> componentFilter) {
+    private static Mono<Void> processPaginatedComponents(ComponentsApi componentsApi, AbstractApiRepository repository, String continuationToken, RepositoryComponentsSummary repositoryComponentsSummary, GroupsSummary groupsSummary, AgeSummary ageSummary, Predicate<ComponentXO> componentFilter) {
         final String repoName = Objects.requireNonNull(repository.getName(), "Repository name cannot be null");
         log.debug("Fetching components page for repository {} with token: {}", repoName, continuationToken);
 
@@ -162,12 +177,20 @@ public final class NxReport {
                                             groupsSummary.addGroupStats(groupName, 1, componentSize);
                                         });
                             }
+
+                            // Update age summary if provided
+                            if (ageSummary.isEnabled()) {
+                                filteredComponents.forEach(component -> {
+                                    long componentSize = calculateComponentSize(component);
+                                    ageSummary.addComponent(component, componentSize);
+                                });
+                            }
                         }
 
                         // If we have a continuation token, process next page
                         String nextContinuationToken = page.getContinuationToken();
                         if (nextContinuationToken != null && !nextContinuationToken.isEmpty()) {
-                            return processPaginatedComponents(componentsApi, repository, nextContinuationToken, repositoryComponentsSummary, groupsSummary, componentFilter);
+                            return processPaginatedComponents(componentsApi, repository, nextContinuationToken, repositoryComponentsSummary, groupsSummary, ageSummary, componentFilter);
                         }
                     } else {
                         log.debug("Repository {} page has no components", repoName);
@@ -176,7 +199,6 @@ public final class NxReport {
                     return Mono.empty();
                 });
     }
-
 
 
     /**

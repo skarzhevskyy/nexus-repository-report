@@ -9,7 +9,7 @@ import picocli.CommandLine;
 public class NxReportCommandArgs implements Callable<Integer> {
 
     @CommandLine.Parameters(index = "0",
-            description = "Report type: all, repositories-summary, top-groups",
+            description = "Report type: all, repositories-summary, top-groups, age-report",
             defaultValue = "all")
     public String report;
 
@@ -58,6 +58,11 @@ public class NxReportCommandArgs implements Callable<Integer> {
             description = "Sort groups by: ${COMPLETION-CANDIDATES} (default: components)",
             converter = SortBy.CaseInsensitiveEnumConverter.class)
     public SortBy groupSort = SortBy.COMPONENTS;
+
+    @CommandLine.Option(
+            names = {"--age-buckets"},
+            description = "Age bucket ranges for age report (default: '0-7,8-30,31-90,91-365,>365')")
+    public String ageBuckets = "0-7,8-30,31-90,91-365,>365";
 
 
     @CommandLine.Option(
@@ -117,6 +122,7 @@ public class NxReportCommandArgs implements Callable<Integer> {
             case "all":
             case "repositories-summary":
             case "top-groups":
+            case "age-report":
                 exitCode = NxReport.generateReport(this);
                 break;
             default:

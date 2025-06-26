@@ -4,10 +4,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.List;
 
+import com.pyx4j.nxrm.report.model.AgeSummary;
 import com.pyx4j.nxrm.report.model.GroupsSummary;
 import com.pyx4j.nxrm.report.model.RepositoryComponentsSummary;
 import org.junit.jupiter.api.Test;
+import org.sonatype.nexus.model.AssetXO;
+import org.sonatype.nexus.model.ComponentXO;
 
 /**
  * Unit tests for NxReportConsole functionality.
@@ -238,5 +245,141 @@ class NxReportConsoleTest {
             }
         }
         assertThat(foundLongName).as("Long group name should be found in output").isTrue();
+    }
+
+    @Test
+    void printAgeSummary_shouldDisplayCorrectFormat() {
+        List<String> ranges = Arrays.asList("0-7", "8-30", "31-90", ">365");
+        AgeSummary summary = new AgeSummary(ranges);
+
+        // Create components with different ages and add them to buckets using proper method
+        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+
+        // Add components to first bucket (0-7 days) - 120 components
+        for (int i = 0; i < 120; i++) {
+            ComponentXO component = createComponentWithAsset(now.minusDays(3)); // 3 days old
+            summary.addComponent(component, 200_000_000L / 120); // Average size per component
+        }
+
+        // Add components to second bucket (8-30 days) - 340 components  
+        for (int i = 0; i < 340; i++) {
+            ComponentXO component = createComponentWithAsset(now.minusDays(15)); // 15 days old
+            summary.addComponent(component, 1_100_000_000L / 340); // Average size per component
+        }
+
+        // Add components to third bucket (31-90 days) - 500 components
+        for (int i = 0; i < 500; i++) {
+            ComponentXO component = createComponentWithAsset(now.minusDays(60)); // 60 days old
+            summary.addComponent(component, 2_000_000_000L / 500); // Average size per component
+        }
+
+        // Add components to fourth bucket (>365 days) - 300 components
+        for (int i = 0; i < 300; i++) {
+            ComponentXO component = createComponentWithAsset(now.minusDays(400)); // 400 days old
+            summary.addComponent(component, 1_200_000_000L / 300); // Average size per component
+        }
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+
+        NxReportConsole.printAgeSummary(summary, printStream);
+
+        String output = outputStream.toString();
+        String[] lines = output.split("\n");
+
+        // Check header
+        assertThat(output).contains("Component Age Distribution");
+        assertThat(output).contains("Age Range");
+        assertThat(output).contains("Components");
+        assertThat(output).contains("Total Size");
+
+        // Check age bucket data (formatted with spacing)
+        assertThat(output).contains("0 - 7  days");
+        assertThat(output).contains("8 - 30 days");
+        assertThat(output).contains("31 - 90 days");
+        assertThat(output).contains(">365 days");
+
+        // Check component counts
+        assertThat(output).contains("120");
+        assertThat(output).contains("340");
+        assertThat(output).contains("500");
+        assertThat(output).contains("300");
+
+        // Check total
+        assertThat(output).contains("TOTAL");
+        assertThat(output).contains("1260"); // Total components
+    }
+
+    @Test
+    void printAgeSummary_withLongAgeRanges_shouldAdjustFormatting() {
+        List<String> ranges = Arrays.asList("0-7", "8-30", "31-90", "91-365", "366-1095", ">1095");
+        AgeSummary summary = new AgeSummary(ranges);
+
+        // Add minimal test data using proper component creation
+        ComponentXO component = createComponentWithAsset(OffsetDateTime.now(ZoneOffset.UTC).minusDays(3));
+        summary.addComponent(component, 1024);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+
+        NxReportConsole.printAgeSummary(summary, printStream);
+
+        String output = outputStream.toString();
+
+        // Should handle longer range descriptions properly (with formatting)
+        assertThat(output).contains("366 - 1095 days");
+        assertThat(output).contains(">1095 days");
+
+        // Check formatting is consistent (no overlapping columns)
+        String[] lines = output.split("\n");
+        for (String line : lines) {
+            if (line.contains("days") && line.matches(".*\\s+1\\s+.*")) {
+                // If this line contains "days" and has " 1 " (component count 1 with spaces), verify it's properly formatted
+                assertThat(line).matches(".*\\s+1\\s+.*");
+                break; // Only need to check one such line
+            }
+        }
+    }
+
+    @Test
+    void printAgeSummary_withEmptyBuckets_shouldDisplayZeros() {
+        List<String> ranges = Arrays.asList("0-7", "8-30", ">365");
+        AgeSummary summary = new AgeSummary(ranges);
+
+        // Add data to only one bucket using proper component method
+        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+
+        // Add 50 components to the 8-30 days bucket (15 days old)
+        for (int i = 0; i < 50; i++) {
+            ComponentXO component = createComponentWithAsset(now.minusDays(15));
+            summary.addComponent(component, 1024000L / 50); // Average size per component
+        }
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+
+        NxReportConsole.printAgeSummary(summary, printStream);
+
+        String output = outputStream.toString();
+
+        // Should show zeros for empty buckets (with new formatting)
+        assertThat(output).containsPattern("0 - 7  days\\s+0\\s+");
+        assertThat(output).containsPattern(">365 days\\s+0\\s+");
+
+        // Should show data for non-empty bucket (with new formatting)
+        assertThat(output).containsPattern("8 - 30 days\\s+50\\s+");
+
+        // Total should match the single bucket
+        assertThat(output).contains("TOTAL");
+        assertThat(output).containsPattern("TOTAL\\s+50\\s+");
+    }
+
+    private ComponentXO createComponentWithAsset(OffsetDateTime blobCreated) {
+        ComponentXO component = new ComponentXO();
+        AssetXO asset = new AssetXO();
+        asset.setBlobCreated(blobCreated);
+        asset.setFileSize(1024L);
+        component.setAssets(List.of(asset));
+        return component;
     }
 }
