@@ -144,7 +144,7 @@ final class ComponentFilter {
         if (repositories == null || repositories.isEmpty()) {
             return true;
         }
-        
+
         return matchesAnyPattern(repositoryName, repositories);
     }
 
