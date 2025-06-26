@@ -101,12 +101,13 @@ To generate specific reports:
 
 ### Report Types
 
-The tool supports four report types:
+The tool supports three report types:
 
-- **`all`** (default): Generates both repositories summary and top consuming groups reports
 - **`repositories-summary`**: Shows storage consumption per repository with component counts
 - **`top-groups`**: Shows top consuming groups (e.g., Maven groupId, npm scope) with configurable sorting and limits
 - **`age-report`**: Shows component age distribution categorized by time since creation
+
+> The `all` option (default) generates all three reports above.
 
 ### Filtering Options
 
