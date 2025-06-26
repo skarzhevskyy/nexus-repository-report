@@ -9,9 +9,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
-import com.pyx4j.nxrm.report.model.RepositoryComponentsSummary;
-import com.pyx4j.nxrm.report.model.GroupsSummary;
 import com.pyx4j.nxrm.report.model.AgeSummary;
+import com.pyx4j.nxrm.report.model.GroupsSummary;
+import com.pyx4j.nxrm.report.model.RepositoryComponentsSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.nexus.ApiClient;
@@ -70,7 +70,7 @@ public final class NxReport {
         // Create our summary objects based on report type
         RepositoryComponentsSummary repositoryComponentsSummary = new RepositoryComponentsSummary();
         GroupsSummary groupsSummary = new GroupsSummary();
-        
+
         // Parse age buckets and create AgeSummary
         List<String> ageBucketRanges = Arrays.asList(args.ageBuckets.split(","));
         AgeSummary ageSummary = new AgeSummary(ageBucketRanges);
@@ -97,7 +97,7 @@ public final class NxReport {
                 .doOnSuccess(allRepos -> {
                     // Output the summaries based on report type
                     boolean hasPreviousOutput = false;
-                    
+
                     if (repositoryComponentsSummary.isEnabled()) {
                         NxReportConsole.printSummary(repositoryComponentsSummary, args.repositoriesSortBy);
                         hasPreviousOutput = true;
@@ -137,12 +137,10 @@ public final class NxReport {
     }
 
 
-
     private static Mono<Void> processRepositoryComponents(ApiClient apiClient, AbstractApiRepository repository, RepositoryComponentsSummary repositoryComponentsSummary, GroupsSummary groupsSummary, AgeSummary ageSummary, Predicate<ComponentXO> componentFilter) {
         ComponentsApi componentsApi = new ComponentsApi(apiClient);
         return processPaginatedComponents(componentsApi, repository, null, repositoryComponentsSummary, groupsSummary, ageSummary, componentFilter);
     }
-
 
 
     private static Mono<Void> processPaginatedComponents(ComponentsApi componentsApi, AbstractApiRepository repository, String continuationToken, RepositoryComponentsSummary repositoryComponentsSummary, GroupsSummary groupsSummary, AgeSummary ageSummary, Predicate<ComponentXO> componentFilter) {
@@ -201,7 +199,6 @@ public final class NxReport {
                     return Mono.empty();
                 });
     }
-
 
 
     /**

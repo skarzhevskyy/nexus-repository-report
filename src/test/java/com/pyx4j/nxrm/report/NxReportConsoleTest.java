@@ -9,9 +9,9 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
 
+import com.pyx4j.nxrm.report.model.AgeSummary;
 import com.pyx4j.nxrm.report.model.GroupsSummary;
 import com.pyx4j.nxrm.report.model.RepositoryComponentsSummary;
-import com.pyx4j.nxrm.report.model.AgeSummary;
 import org.junit.jupiter.api.Test;
 import org.sonatype.nexus.model.AssetXO;
 import org.sonatype.nexus.model.ComponentXO;
@@ -254,25 +254,25 @@ class NxReportConsoleTest {
 
         // Create components with different ages and add them to buckets using proper method
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-        
+
         // Add components to first bucket (0-7 days) - 120 components
         for (int i = 0; i < 120; i++) {
             ComponentXO component = createComponentWithAsset(now.minusDays(3)); // 3 days old
             summary.addComponent(component, 200_000_000L / 120); // Average size per component
         }
-        
+
         // Add components to second bucket (8-30 days) - 340 components  
         for (int i = 0; i < 340; i++) {
             ComponentXO component = createComponentWithAsset(now.minusDays(15)); // 15 days old
             summary.addComponent(component, 1_100_000_000L / 340); // Average size per component
         }
-        
+
         // Add components to third bucket (31-90 days) - 500 components
         for (int i = 0; i < 500; i++) {
             ComponentXO component = createComponentWithAsset(now.minusDays(60)); // 60 days old
             summary.addComponent(component, 2_000_000_000L / 500); // Average size per component
         }
-        
+
         // Add components to fourth bucket (>365 days) - 300 components
         for (int i = 0; i < 300; i++) {
             ComponentXO component = createComponentWithAsset(now.minusDays(400)); // 400 days old
@@ -348,7 +348,7 @@ class NxReportConsoleTest {
 
         // Add data to only one bucket using proper component method
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-        
+
         // Add 50 components to the 8-30 days bucket (15 days old)
         for (int i = 0; i < 50; i++) {
             ComponentXO component = createComponentWithAsset(now.minusDays(15));
@@ -379,7 +379,7 @@ class NxReportConsoleTest {
         AssetXO asset = new AssetXO();
         asset.setBlobCreated(blobCreated);
         asset.setFileSize(1024L);
-        component.setAssets(Arrays.asList(asset));
+        component.setAssets(List.of(asset));
         return component;
     }
 }

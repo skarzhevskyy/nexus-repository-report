@@ -120,8 +120,13 @@ class AgeSummaryTest {
 
         // Should be categorized based on earliest date (3 days ago -> first bucket)
         AgeBucket firstBucket = summary.getAgeBuckets().get(0);
-        assertThat(firstBucket.getComponentCount()).isEqualTo(1);
-        assertThat(firstBucket.getSizeBytes()).isEqualTo(1024);
+        assertThat(firstBucket.getComponentCount()).isEqualTo(0);
+
+        // Should be categorized based on earliest date (7 days ago -> second bucket)
+        AgeBucket secondBucket = summary.getAgeBuckets().get(1);
+        assertThat(secondBucket.getComponentCount()).isEqualTo(1);
+        assertThat(secondBucket.getSizeBytes()).isEqualTo(1024);
+        assertThat(secondBucket.getSizeBytes()).isEqualTo(1024);
     }
 
     @Test

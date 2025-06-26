@@ -6,12 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.pyx4j.nxrm.report.model.RepositoryComponentsSummary;
-import com.pyx4j.nxrm.report.model.RepositoryStats;
-import com.pyx4j.nxrm.report.model.GroupsSummary;
-import com.pyx4j.nxrm.report.model.GroupStats;
-import com.pyx4j.nxrm.report.model.AgeSummary;
-import com.pyx4j.nxrm.report.model.AgeBucket;
+import com.pyx4j.nxrm.report.model.*;
 
 class NxReportConsole {
 
@@ -262,22 +257,22 @@ class NxReportConsole {
      * "31-90" becomes "31 - 90  days"
      * ">365" becomes  ">365 days"
      *
-     * @param bucket The age bucket to format
+     * @param bucket     The age bucket to format
      * @param allBuckets All buckets to calculate consistent spacing
      * @return Formatted age range description
      */
     private static String formatAgeRange(AgeBucket bucket, List<AgeBucket> allBuckets) {
         String originalRange = bucket.getOriginalRange();
-        
+
         // Handle greater-than ranges (no special formatting)
         if (originalRange.startsWith(">")) {
             return originalRange + " days";
         }
-        
+
         // Calculate maximum widths needed for consistent alignment
         int maxStartWidth = 0;
         int maxEndWidth = 0;
-        
+
         for (AgeBucket b : allBuckets) {
             String range = b.getOriginalRange();
             if (!range.startsWith(">") && range.contains("-")) {
@@ -288,20 +283,20 @@ class NxReportConsole {
                 }
             }
         }
-        
+
         // Format the current bucket if it's a range
         if (originalRange.contains("-")) {
             String[] parts = originalRange.split("-");
             if (parts.length == 2) {
                 String startNum = parts[0];
                 String endNum = parts[1];
-                
+
                 // Right-align start number, left-align end number
-                return String.format("%" + maxStartWidth + "s - %-" + maxEndWidth + "s days", 
-                    startNum, endNum);
+                return String.format("%" + maxStartWidth + "s - %-" + maxEndWidth + "s days",
+                        startNum, endNum);
             }
         }
-        
+
         // Fallback to original format
         return originalRange + " days";
     }

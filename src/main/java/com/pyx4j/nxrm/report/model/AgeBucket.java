@@ -38,18 +38,18 @@ public class AgeBucket {
             // Range format: "0-7", "8-30", etc.
             this.minDays = Integer.parseInt(rangeMatcher.group(1));
             this.maxDays = Integer.parseInt(rangeMatcher.group(2));
-            
+
             if (this.minDays > this.maxDays) {
-                throw new IllegalArgumentException("Invalid age bucket range: " + rangeDescription + 
-                    " (min days cannot be greater than max days)");
+                throw new IllegalArgumentException("Invalid age bucket range: " + rangeDescription +
+                        " (min days cannot be greater than max days)");
             }
         } else if (greaterThanMatcher.matches()) {
             // Greater than format: ">365"
             this.minDays = Integer.parseInt(greaterThanMatcher.group(1)) + 1;
             this.maxDays = null; // Open-ended
         } else {
-            throw new IllegalArgumentException("Invalid age bucket format: " + rangeDescription + 
-                ". Expected formats: '0-7', '8-30', or '>365'");
+            throw new IllegalArgumentException("Invalid age bucket format: " + rangeDescription +
+                    ". Expected formats: '0-7', '8-30', or '>365'");
         }
     }
 

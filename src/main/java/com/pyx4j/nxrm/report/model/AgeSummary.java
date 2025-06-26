@@ -29,7 +29,7 @@ public class AgeSummary extends ReportSection {
      */
     public AgeSummary(@NonNull List<String> ageBucketRanges) {
         Objects.requireNonNull(ageBucketRanges, "Age bucket ranges cannot be null");
-        
+
         if (ageBucketRanges.isEmpty()) {
             throw new IllegalArgumentException("Age bucket ranges cannot be empty");
         }
@@ -55,7 +55,7 @@ public class AgeSummary extends ReportSection {
 
         // Find the earliest creation date among all assets
         OffsetDateTime earliestCreationDate = getEarliestCreationDate(component);
-        
+
         if (earliestCreationDate == null) {
             // Skip components without creation dates
             return;
