@@ -34,7 +34,7 @@ dependencies {
 
 	// Command line arguments
 	implementation("info.picocli:picocli:4.7.7")
-	implementation("com.opencsv:opencsv:5.7.1")
+	implementation("com.opencsv:opencsv:5.11.2")
 
 	implementation("com.google.guava:guava:33.4.8-jre")
 	implementation("org.apache.commons:commons-lang3")
