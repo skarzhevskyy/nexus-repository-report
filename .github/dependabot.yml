@@ -7,7 +7,7 @@ updates:
       interval: "weekly"
       day: friday
   - package-ecosystem: gradle
-    directory: "/javascript"
+    directory: "/"
     schedule:
       interval: "weekly"
       day: friday
