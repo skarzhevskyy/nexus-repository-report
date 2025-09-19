@@ -36,7 +36,7 @@ dependencies {
 	implementation("info.picocli:picocli:4.7.7")
 	implementation("com.opencsv:opencsv:5.12.0")
 
-	implementation("com.google.guava:guava:33.4.8-jre")
+	implementation("com.google.guava:guava:33.5.0-jre")
 	implementation("org.apache.commons:commons-lang3")
 	// Runtime validation alternative...
 	implementation("org.assertj:assertj-core:3.27.3")
