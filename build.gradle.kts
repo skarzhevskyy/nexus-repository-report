@@ -39,7 +39,7 @@ dependencies {
 	implementation("com.google.guava:guava:33.4.8-jre")
 	implementation("org.apache.commons:commons-lang3")
 	// Runtime validation alternative...
-	implementation("org.assertj:assertj-core:3.27.3")
+	implementation("org.assertj:assertj-core:3.27.5")
 
 	// Tests
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
