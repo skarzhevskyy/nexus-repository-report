@@ -2,7 +2,7 @@ plugins {
 	id("java")
 	id("application")
 	// Create Java API from OpenAPI specification
-	id("org.openapi.generator") version "7.14.0"
+	id("org.openapi.generator") version "7.16.0"
 	// Dependencies list and diff automation in command line and CI/CD
 	id("org.cyclonedx.bom") version "2.3.1"
 	// Docker image creation
