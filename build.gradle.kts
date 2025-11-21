@@ -29,7 +29,7 @@ repositories {
 }
 
 dependencies {
-	implementation(platform("org.springframework.boot:spring-boot-dependencies:3.5.6"))
+	implementation(platform("org.springframework.boot:spring-boot-dependencies:4.0.0"))
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 
 	// Command line arguments
