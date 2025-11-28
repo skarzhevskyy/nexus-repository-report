@@ -4,7 +4,7 @@ plugins {
 	// Create Java API from OpenAPI specification
 	id("org.openapi.generator") version "7.19.0"
 	// Dependencies list and diff automation in command line and CI/CD
-	id("org.cyclonedx.bom") version "2.3.1"
+	id("org.cyclonedx.bom") version "3.1.0"
 	// Docker image creation
 	id("com.google.cloud.tools.jib") version "3.5.2"
 	// Allow configuring IntelliJ IDEA project
@@ -118,21 +118,14 @@ tasks.withType<Test> {
 	}
 }
 
-// Disable the default cyclonedxBom task: https://github.com/CycloneDX/cyclonedx-gradle-plugin/issues/596
-tasks.named("cyclonedxBom") {
-	enabled = false
-}
-
 // Example: gradle sbom; vk-sbom-diff sbom-1.json sbom.json
-tasks.register("sbom", org.cyclonedx.gradle.CycloneDxTask::class) {
-	setIncludeConfigs(listOf("runtimeClasspath"))
-	setProjectType("application")
-	setSchemaVersion("1.6")
-	setDestination(project.file("."))
-	setOutputName("sbom")
-	setOutputFormat("json")
-	setIncludeBomSerialNumber(false)
-	setIncludeLicenseText(false)
+tasks.register("sbom", org.cyclonedx.gradle.CyclonedxDirectTask::class) {
+	includeConfigs.set(listOf("runtimeClasspath"))
+	projectType.set(org.cyclonedx.model.Component.Type.APPLICATION)
+	schemaVersion.set(org.cyclonedx.Version.VERSION_16)
+	jsonOutput.set(project.layout.projectDirectory.file("sbom.json"))
+	includeBomSerialNumber.set(false)
+	includeLicenseText.set(false)
 }
 
 // Default to local Docker daemon for development
