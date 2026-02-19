@@ -30,11 +30,17 @@ repositories {
 
 dependencies {
 	implementation(platform("org.springframework.boot:spring-boot-dependencies:4.0.2"))
+	// Keep jackson 2.x for backward compatibility with the OpenAPI-generated client
+    implementation(platform("com.fasterxml.jackson:jackson-bom:2.21.0"))
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 
 	// Command line arguments
 	implementation("info.picocli:picocli:4.7.7")
 	implementation("com.opencsv:opencsv:5.12.0")
+
+	// Jackson 2.x for backward compatibility with generated OpenAPI client
+	implementation("com.fasterxml.jackson.core:jackson-databind")
+	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
 	implementation("com.google.guava:guava:33.5.0-jre")
 	implementation("org.apache.commons:commons-lang3")
