@@ -29,7 +29,7 @@ repositories {
 }
 
 dependencies {
-	implementation(platform("org.springframework.boot:spring-boot-dependencies:4.0.2"))
+	implementation(platform("org.springframework.boot:spring-boot-dependencies:4.0.3"))
 	// Keep jackson 2.x for backward compatibility with the OpenAPI-generated client
     implementation(platform("com.fasterxml.jackson:jackson-bom:2.21.0"))
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
