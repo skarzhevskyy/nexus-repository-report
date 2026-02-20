@@ -4,7 +4,7 @@ plugins {
 	// Create Java API from OpenAPI specification
 	id("org.openapi.generator") version "7.19.0"
 	// Dependencies list and diff automation in command line and CI/CD
-	id("org.cyclonedx.bom") version "3.1.0"
+	id("org.cyclonedx.bom") version "3.2.0"
 	// Docker image creation
 	id("com.google.cloud.tools.jib") version "3.5.2"
 	// Allow configuring IntelliJ IDEA project
