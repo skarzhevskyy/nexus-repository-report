@@ -6,7 +6,7 @@ plugins {
 	// Dependencies list and diff automation in command line and CI/CD
 	id("org.cyclonedx.bom") version "3.1.0"
 	// Docker image creation
-	id("com.google.cloud.tools.jib") version "3.5.2"
+	id("com.google.cloud.tools.jib") version "3.5.3"
 	// Allow configuring IntelliJ IDEA project
 	id("idea")
 }
